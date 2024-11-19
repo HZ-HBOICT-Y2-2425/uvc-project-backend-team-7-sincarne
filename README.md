@@ -57,4 +57,4 @@ For better developer experience belowe is the list of tasks that can be coppied 
 ```
 
 ### Running 
-To start all the api in dev: press `ctrl+shirt+P` and type `Tasks: Run Tasks` and then select `backend dev all`
+To start all the api in dev: press `ctrl+shirt+P` and type `Tasks: Run Tasks` and then select `dev all`
