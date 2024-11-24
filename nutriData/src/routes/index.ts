@@ -10,7 +10,7 @@ router.get('/',(req,res,next) => {
 	res.json("hi");
 })
 
-router.get('/search/:name',cors(),searchFoodsOptionsByName)
+router.get('/search/:ingredient',cors(),searchFoodsOptionsByName)
 
 
 export default router;
