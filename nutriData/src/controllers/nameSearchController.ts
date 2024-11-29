@@ -25,25 +25,25 @@ export async function searchFoodsOptionsByName(req: Request, res: Response) {
 		.filter((word) => word)
 		.map((word) => `%${word}%`);
 	// Build like clause while escaping special characters (matches all words in any order
-	const likeClause = words.map(() => `ingredient_code LIKE ?`).join(" AND ");
+	const likeClause = words.map(() => `ingredient_description LIKE ?`).join(" AND ");
 
 	// Sql Query to be executed
 	// We are ordering by length so the primary ingredients come first
 	const searchQuery = `
-			SELECT id, ingredient_code FROM Ingredient_nutrient_value
+			SELECT DISTINCT ingredient_code, ingredient_description FROM Ingredient_nutrient_value
 			WHERE ${likeClause}
-			ORDER BY length(ingredient_code)
+			ORDER BY length(ingredient_description)
 			LIMIT ?
 		`;
 
 	// Zod Schema for ensuring type safety
 	const searchSchema = z.object({
-		id: z.number(),
-		ingredient_code: z.string(),
+		ingredient_code: z.number(),
+		ingredient_description: z.string(),
 	});
 
 	// Typed safe results
-	const searchResult: { id: number; ingredient_code: string }[] = new Array();
+	const searchResult: { ingredient_code: number; ingredient_description: string }[] = new Array();
 
 	db.serialize(() => {
 		db.all(searchQuery, [...words, 15], (err, rows) => {
@@ -51,7 +51,6 @@ export async function searchFoodsOptionsByName(req: Request, res: Response) {
 				console.log("error: ", err);
 				res.status(500).send();
 			}
-
 			rows.forEach((row) => {
 				// Parsing output from database in type safe fashion
 				const parsed = searchSchema.safeParse(row);

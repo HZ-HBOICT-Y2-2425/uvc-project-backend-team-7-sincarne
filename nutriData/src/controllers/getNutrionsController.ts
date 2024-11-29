@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import sqlite3 from "sqlite3";
 import dotenv from "dotenv";
+import z from "zod"
 
 
 export async function getNutritions(req: Request, res: Response) {
@@ -14,6 +15,56 @@ export async function getNutritions(req: Request, res: Response) {
 			res.status(500).send();
 		}
 	});
+
+	// Get ingreident id from the request
+	const ingredient_code = req.params.ingredient_code;
+	console.log(ingredient_code)
+	// SQL query to be exectured
+	const receiveQuery = `
+		SELECT nut.name, nutrient_value FROM Ingredient_nutrient_value as nut_v
+		LEFT JOIN Nutrient as nut on nut_v.nutrient_code = nut.nutrient_nbr 
+		WHERE ingredient_code = ? 
+	`
+
+	const receiveSchema = z.object({
+		nutrient_code: z.number(),
+		nutrient_value: z.number()
+	})
+
+	const receiveResults : {nutrient_code :number, nutrient_value : number}[] = []
+
+	db.serialize(()=>{
+		db.all(receiveQuery,[ingredient_code],(err, rows)=>{
+			if (err) {
+				console.log("error: ", err);
+				res.status(500).send();
+			}
+			rows.forEach((row)=>{
+				console.log(row);
+				// parsing output from database in type safe fashion
+				/*
+				const parsed = receiveSchema.safeParse(row);
+				if(parsed.success){
+					receiveResults.push(parsed.data)
+				}else{
+					//todo: error handling
+					console.log(parsed.error);
+				}
+				*/
+			})
+			res.status(200).json(receiveResults)
+
+
+		})
+	})
+	db.close()
+
+
+	
+
+
+
+
 
 }
 

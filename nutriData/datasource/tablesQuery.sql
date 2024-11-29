@@ -6,12 +6,14 @@ CREATE TABLE Ingredient_nutrient_value (
     nutrient_code INTEGER,
     nutrient_value REAL,
     nutrient_value_source TEXT,
-    fdc_id INTEGER,
+    fdc_id INTEGER NOT NULL,
     derivation_code TEXT,
+    sr_addMode DATE,
     foundation_year_acquired INTEGER,
     start_date DATE,
     end_date DATE,
     FOREIGN KEY (derivation_code) REFERENCES Derivation(derivation_code)
+
 );
 
 -- Table: Food
@@ -19,7 +21,6 @@ CREATE TABLE Food (
     fdc_id INTEGER NOT NULL PRIMARY KEY,
     data_type TEXT NOT NULL,
     description TEXT NOT NULL,
-    nutrient_code INTEGER,
     food_category_id INTEGER,
     publication_date DATE
 );
@@ -28,6 +29,7 @@ CREATE TABLE Food (
 CREATE TABLE Food_attribute (
     id INTEGER NOT NULL PRIMARY KEY,
     fdc_id INTEGER NOT NULL,
+    seq_num INTEGER,
     food_attribute_type_id INTEGER,
     name TEXT,
     value TEXT,
@@ -102,25 +104,28 @@ CREATE TABLE Survey_food (
 
 -- Table: Nutrient
 CREATE TABLE Nutrient (
-    id TEXT NOT NULL PRIMARY KEY,
+    id INTEGER NOT NULL PRIMARY KEY,
     name TEXT NOT NULL,
     unit_name TEXT NOT NULL,
-    nutrient_nbr TEXT NOT NULL,
-    rank TEXT
+    nutrient_nbr INTEGER NOT NULL,
+    rank INTEGER
 );
 
 -- Table: InputData
 CREATE TABLE Input_food (
-    id TEXT NOT NULL PRIMARY KEY,
+    id INTEGER NOT NULL PRIMARY KEY,
     fdc_id INTEGER NOT NULL,
-    amount REAL,
-    id_of_input_food INTEGER,
+    fdc_of_input_food INTEGER,
     seq_num INTEGER,
+    amount REAL,
+    sr_code TEXT,
+    sr_description TEXT,
+    unit TEXT NOT NULL,
     portion_code INTEGER,
-    ingredient_code INTEGER,
-    measure_unit_id INTEGER,
-    FOREIGN KEY (fdc_id) REFERENCES Food(fdc_id),
-    FOREIGN KEY (measure_unit_id) REFERENCES MeasureUnit(id)
+    portion_description TEXT,
+    gram_weight REAL,
+    retention_code INTEGER,
+    FOREIGN KEY (fdc_id) REFERENCES Food(fdc_id)
 );
 
 -- Table: WweiaFoodCategory

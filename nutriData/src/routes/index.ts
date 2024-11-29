@@ -12,7 +12,7 @@ router.get('/',(req,res,next) => {
 })
 
 router.get('/search/:ingredient',cors(),searchFoodsOptionsByName)
-router.get('/getNutritions/:ingredient',cors(),getNutritions)
+router.get('/getNutritions/:ingredient_code',cors(),getNutritions)
 
 
 export default router;

@@ -5,7 +5,7 @@ setlocal enabledelayedexpansion
 set "DB_NAME=..\db.sqlite3"
 
 :: Directory containing CSV files
-set "CSV_DIR=.\FoodData_Central_survey_food_csv_2024-10-31"
+set "CSV_DIR=.\Food_central"
 
 :: Loop through all CSV files in the directory
 for %%F in ("%CSV_DIR%\*.csv") do (
