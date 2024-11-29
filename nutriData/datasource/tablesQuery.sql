@@ -6,6 +6,7 @@ CREATE TABLE Ingredient_nutrient_value (
     nutrient_code INTEGER,
     nutrient_value REAL,
     nutrient_value_source TEXT,
+    fdc_id INTEGER,
     derivation_code TEXT,
     foundation_year_acquired INTEGER,
     start_date DATE,
@@ -101,16 +102,16 @@ CREATE TABLE Survey_food (
 
 -- Table: Nutrient
 CREATE TABLE Nutrient (
-    id INTEGER NOT NULL PRIMARY KEY,
+    id TEXT NOT NULL PRIMARY KEY,
     name TEXT NOT NULL,
     unit_name TEXT NOT NULL,
-    nutrient_nbr INTEGER NOT NULL,
-    rank REAL
+    nutrient_nbr TEXT NOT NULL,
+    rank TEXT
 );
 
 -- Table: InputData
 CREATE TABLE Input_food (
-    id INTEGER NOT NULL PRIMARY KEY,
+    id TEXT NOT NULL PRIMARY KEY,
     fdc_id INTEGER NOT NULL,
     amount REAL,
     id_of_input_food INTEGER,
@@ -124,6 +125,6 @@ CREATE TABLE Input_food (
 
 -- Table: WweiaFoodCategory
 CREATE TABLE Wweia_food_category (
-    wweia_food_category INTEGER NOT NULL PRIMARY KEY,
+    wweia_food_category TEXT NOT NULL PRIMARY KEY,
     wweia_food_category_description TEXT
 );

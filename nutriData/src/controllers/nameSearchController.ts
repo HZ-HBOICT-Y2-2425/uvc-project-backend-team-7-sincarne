@@ -36,11 +36,13 @@ export async function searchFoodsOptionsByName(req: Request, res: Response) {
 			LIMIT ?
 		`;
 
+	// Zod Schema for ensuring type safety
 	const searchSchema = z.object({
 		id: z.number(),
 		ingredient_code: z.string(),
 	});
 
+	// Typed safe results
 	const searchResult: { id: number; ingredient_code: string }[] = new Array();
 
 	db.serialize(() => {
@@ -51,6 +53,7 @@ export async function searchFoodsOptionsByName(req: Request, res: Response) {
 			}
 
 			rows.forEach((row) => {
+				// Parsing output from database in type safe fashion
 				const parsed = searchSchema.safeParse(row);
 				if (parsed.success) {
 					searchResult.push(parsed.data);
