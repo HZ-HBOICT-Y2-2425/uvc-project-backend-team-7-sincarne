@@ -192,6 +192,13 @@ build/
 *.drawio.bkp
 *.drawio.dtmp
 
-#project specific
+
+# project specific
 **/node_modules
 **/dist
+
+#db files
+*.sqlite3
+
+# source for the data 
+nutriData/datasource/*/
