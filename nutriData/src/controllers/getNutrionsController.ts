@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
 import sqlite3 from "sqlite3";
 import dotenv from "dotenv";
-import z from "zod"
-
+import z from "zod";
 
 export async function getNutritions(req: Request, res: Response) {
 	// Open sqlite in verbose for better error tracing if the app is in debug mode
@@ -18,31 +17,33 @@ export async function getNutritions(req: Request, res: Response) {
 
 	// Get ingreident id from the request
 	const ingredient_code = req.params.ingredient_code;
-	console.log(ingredient_code)
 	// SQL query to be exectured
 	const receiveQuery = `
-		SELECT nut.name, nutrient_value FROM Ingredient_nutrient_value as nut_v
+		SELECT nut.name, nutrient_value, nut.unit_name FROM Ingredient_nutrient_value as nut_v
 		LEFT JOIN Nutrient as nut on nut_v.nutrient_code = nut.nutrient_nbr 
 		WHERE ingredient_code = ? 
-	`
+	`;
 
 	const receiveSchema = z.object({
-		nutrient_code: z.number(),
-		nutrient_value: z.number()
-	})
+		name: z.string(),
+		nutrient_value: z.number(),
+		unit_name: z.string(),
+	});
 
-	const receiveResults : {nutrient_code :number, nutrient_value : number}[] = []
+	const receiveResults: {
+		name: string;
+		nutrient_value: number;
+		unit_name: string;
+	}[] = [];
 
-	db.serialize(()=>{
-		db.all(receiveQuery,[ingredient_code],(err, rows)=>{
+	db.serialize(() => {
+		db.all(receiveQuery, [ingredient_code], (err, rows) => {
 			if (err) {
 				console.log("error: ", err);
 				res.status(500).send();
 			}
-			rows.forEach((row)=>{
-				console.log(row);
+			rows.forEach((row) => {
 				// parsing output from database in type safe fashion
-				/*
 				const parsed = receiveSchema.safeParse(row);
 				if(parsed.success){
 					receiveResults.push(parsed.data)
@@ -50,21 +51,9 @@ export async function getNutritions(req: Request, res: Response) {
 					//todo: error handling
 					console.log(parsed.error);
 				}
-				*/
-			})
-			res.status(200).json(receiveResults)
-
-
-		})
-	})
-	db.close()
-
-
-	
-
-
-
-
-
+			});
+			res.status(200).json(receiveResults);
+		});
+	});
+	db.close();
 }
-
