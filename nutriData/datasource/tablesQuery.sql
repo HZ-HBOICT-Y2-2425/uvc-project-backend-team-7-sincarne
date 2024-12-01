@@ -133,3 +133,10 @@ CREATE TABLE Wweia_food_category (
     wweia_food_category TEXT NOT NULL PRIMARY KEY,
     wweia_food_category_description TEXT
 );
+
+-- Table: identified_meat_ingredients
+CREATE TABLE Identified_meat_ingredients(
+    ingredient_code NOT NULL PRIMARY KEY,
+    is_meat TEXT
+);
+
