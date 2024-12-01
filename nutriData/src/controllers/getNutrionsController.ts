@@ -17,19 +17,21 @@ export async function getNutritions(req: Request, res: Response) {
 
 	// Get ingreident id from the request
 	const ingredient_code = req.params.ingredient_code;
-	// SQL query to be exectured
+	// SQL query to be exectuted
 	const receiveQuery = `
 		SELECT nut.name, nutrient_value, nut.unit_name FROM Ingredient_nutrient_value as nut_v
 		LEFT JOIN Nutrient as nut on nut_v.nutrient_code = nut.nutrient_nbr 
 		WHERE ingredient_code = ? 
 	`;
 
+	// Zod Schema for ensuring type safety
 	const receiveSchema = z.object({
 		name: z.string(),
 		nutrient_value: z.number(),
 		unit_name: z.string(),
 	});
 
+	// Query Results
 	const receiveResults: {
 		name: string;
 		nutrient_value: number;
