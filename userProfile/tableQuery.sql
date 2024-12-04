@@ -52,13 +52,13 @@ CREATE TABLE Recipes_to_tags(
 CREATE TABLE Diatery_diary(
 	date TEXT NOT NULL,
 	user_id INTEGER NOT NULL,
-	total_calores REAL,
+	total_calories REAL,
 	total_protein REAL,
 	total_carbs REAL,
 	total_fats REAL,
 	PRIMARY KEY (user_id,date),
 	FOREIGN KEY (user_id) REFERENCES Users(id)
-)
+);
 
 
 
