@@ -46,7 +46,7 @@ export async function searchFoodsOptionsByName(req: Request, res: Response) {
 	const searchResult: { ingredient_code: number; ingredient_description: string }[] = new Array();
 
 	db.serialize(() => {
-		db.all(searchQuery, [...words, 15], (err, rows) => {
+		db.all(searchQuery, [...words, process.env.SEARCH_AMOUNT], (err, rows) => {
 			if (err) {
 				console.log("error: ", err);
 				res.status(500).send();
