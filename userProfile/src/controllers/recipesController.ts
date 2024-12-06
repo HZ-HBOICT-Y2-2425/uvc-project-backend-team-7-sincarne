@@ -11,6 +11,75 @@ import {
 // Open sqlite in verbose for better error tracing if the app is in debug mode
 const sqlite = process.env.DEBUG === "TRUE" ? sqlite3.verbose() : sqlite3;
 
+
+
+// Retrieve all recipes for a user
+export async function getRecipes(req: Request, res: Response) {
+	// Connect to the database
+	const db = new sqlite.Database("./db.sqlite3", (err) => {
+		if (err) {
+			console.log("opening error: ", err);
+			// If databased failed to open the Api is unoperable
+			res.status(500).send();
+		}
+	});
+
+	//todo: retrieve user id from the request
+	const user_id = 1;
+
+
+	const getQuery = `SELECT * FROM Recipes
+	WHERE user_id = ?`;
+
+	// todo: add pagination
+	db.all(getQuery, [user_id], (err, rows) => {
+		if (err) {
+			console.log(err);
+			res.status(500).send();
+		}
+		if (rows.length === 0) {
+			res.status(200).json([]);
+		}
+		res.status(200).json(rows);
+	});
+	db.close();
+}
+
+// Retrieve a single recipe
+export async function getRecipe(req: Request, res: Response) {
+	// Connect to the database
+	const db = new sqlite.Database("./db.sqlite3", (err) => {
+		if (err) {
+			console.log("opening error: ", err);
+			// If databased failed to open the Api is unoperable
+			res.status(500).send();
+		}
+	});
+
+	//todo: Retrieve the recipe_id from the request
+	const user_id = 1;
+
+	// Retrieve the recipe_id from the request
+	const receipe_id = req.params.recipe_id;
+
+	const getQuery = `SELECT * FROM Recipes
+	WHERE id = ? AND user_id = ?`;
+
+	db.get(getQuery, [receipe_id, user_id], (err, row) => {
+		if (err) {
+			console.log(err);
+			res.status(500).send();
+		}
+		if (!row) {
+			res.status(404).send("Recipe not found or invalid id");
+		}
+		res.status(200).json(row);
+	});
+	db.close();
+}
+
+
+
 //todo: provide user_id through auth0
 export async function createRecipe(req: Request, res: Response) {
 	// Connect to the database
