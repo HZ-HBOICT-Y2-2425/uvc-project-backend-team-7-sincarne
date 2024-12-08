@@ -15,6 +15,7 @@ const sqlite = process.env.DEBUG === "TRUE" ? sqlite3.verbose() : sqlite3;
 
 // Retrieve all recipes for a user
 export async function getRecipes(req: Request, res: Response) {
+
 	// Connect to the database
 	const db = new sqlite.Database("./db.sqlite3", (err) => {
 		if (err) {
@@ -24,9 +25,7 @@ export async function getRecipes(req: Request, res: Response) {
 		}
 	});
 
-	//todo: retrieve user id from the request
-	const user_id = 1;
-
+	const user_id = parseInt(req.params.user_id);
 
 	const getQuery = `SELECT * FROM Recipes
 	WHERE user_id = ?`;
@@ -56,8 +55,7 @@ export async function getRecipe(req: Request, res: Response) {
 		}
 	});
 
-	//todo: Retrieve the recipe_id from the request
-	const user_id = 1;
+	const user_id = parseInt(req.params.user_id);
 
 	// Retrieve the recipe_id from the request
 	const receipe_id = req.params.recipe_id;
@@ -80,7 +78,6 @@ export async function getRecipe(req: Request, res: Response) {
 
 
 
-//todo: provide user_id through auth0
 export async function createRecipe(req: Request, res: Response) {
 	// Connect to the database
 	const db = new sqlite.Database("./db.sqlite3", (err) => {
@@ -91,9 +88,10 @@ export async function createRecipe(req: Request, res: Response) {
 		}
 	});
 
+	const user_id = parseInt(req.params.user_id);
+	
 	// Type checking received data provide null for empty values
 	const recipeSchema = z.object({
-		user_id: createIntegerSchema(),
 		name: z.string(),
 		image_path: z.string().nullable().default(null),
 		ingredients: z.string().nullable().default(null),
@@ -120,7 +118,7 @@ export async function createRecipe(req: Request, res: Response) {
 	`;
 
 	db.serialize(() => {
-		db.run(insertQuery, [...Object.values(parsed.data)]);
+		db.run(insertQuery, [user_id,...Object.values(parsed.data)]);
 	});
 
 	res.status(200).send();
@@ -139,7 +137,7 @@ export function updateRecipe(req: Request, res: Response) {
 	// Retrieve the recipe_id from the request
 	const receipe_id = req.params.recipe_id;
 
-
+	const user_id = parseInt(req.params.user_id);
 	// Type checking received data 
 	const updateSchema = z.object({
 		name: z.string().optional(),
@@ -166,28 +164,31 @@ export function updateRecipe(req: Request, res: Response) {
 	const nameUpdateQuery = `
 		UPDATE Recipes
 		SET name = ?
-		WHERE id = ?
+		WHERE id = ? and user_id = ?
 	`;
 
 	const ingredientsUpdateQuery = `
 		UPDATE Recipes
 		SET ingredients = ?
-		WHERE id = ?
+		WHERE id = ? and user_id = ?
+
 	`;
 
 	const checkQuery = `
 		SELECT * FROM Recipes
-		WHERE id = ?
+		WHERE id = ? and user_id = ?
+
 	`;
 
 	const ingredientsQuery = `
 		SELECT ingredients FROM recipes
-		WHERE id = ?
+		WHERE id = ? and user_id = ?
+
 	`;
 
 	db.serialize(() => {
 		// validate if recipe_id exists
-		db.get(checkQuery, [receipe_id], (err, row) => {
+		db.get(checkQuery, [receipe_id,user_id], (err, row) => {
 			if (err) {
 				console.log(err);
 				res.status(500);
@@ -202,7 +203,7 @@ export function updateRecipe(req: Request, res: Response) {
 			if (parsed.data.name) {
 				db.run(
 					nameUpdateQuery,
-					[parsed.data.name, receipe_id],
+					[parsed.data.name, receipe_id,user_id],
 					(err) => {
 						if (err) {
 							console.log(err);
@@ -219,7 +220,7 @@ export function updateRecipe(req: Request, res: Response) {
 				) {
 					console.log("updating ingredients");
 					// retrieve the current ingredients
-					db.get(ingredientsQuery, [receipe_id], (err, row) => {
+					db.get(ingredientsQuery, [receipe_id,user_id], (err, row) => {
 						if (err) {
 							console.log(err);
 							res.status(500).send();
@@ -237,7 +238,6 @@ export function updateRecipe(req: Request, res: Response) {
 							parsedQuery.data.ingredients === null
 								? []
 								: parsedQuery.data.ingredients;
-						console.log(parsed.data);
 						// remove the ingredients that are marked to be deleted
 						if (parsed.data.to_delete !== undefined) {
 							parsed.data.to_delete.forEach((ingredient) => {
@@ -268,6 +268,7 @@ export function updateRecipe(req: Request, res: Response) {
 							[
 								"[" + currentIngredients.join(",") + "]",
 								receipe_id,
+								user_id,
 							],
 							(err) => {
 								if (err) {
@@ -297,15 +298,16 @@ export async function deleteRecipe(req : Request, res: Response){
 	// Retrieve the recipe_id from the request
 	const receipe_id = req.params.recipe_id;
 
+	const user_id = parseInt(req.params.user_id);
+
 	const deleteQuery = `
 		DELETE FROM Recipes
-		WHERE id = ?
+		WHERE id = ? AND user_id = ?
 	`;
 
 
 	db.serialize(() => {
-		//todo: validate if user is authorized to delete this recipe
-		db.run(deleteQuery, [receipe_id], (err) => {
+		db.run(deleteQuery, [receipe_id, user_id], (err) => {
 			if (err) {
 				console.log(err);
 				res.status(500).send();

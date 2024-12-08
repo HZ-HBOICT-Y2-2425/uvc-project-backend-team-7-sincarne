@@ -2,6 +2,8 @@ import express from 'express';
 import { auth } from 'express-openid-connect';
 import { requiresAuth } from 'express-openid-connect';
 import * as dotenv from 'dotenv';
+import router from './routes';
+import { authUser } from './middleware/authUser';
 dotenv.config({ path: require('path').resolve(__dirname, '../.env') });
 
 const config = {
@@ -27,10 +29,14 @@ app.get('/', (req, res) => {
   res.redirect('https://sincarne-08e9ac5ee7bf.herokuapp.com/');
 });
 
+app.use('/user',requiresAuth(),authUser,router),
+
 //demonstrates how to access thr user data
 app.get('/profile', requiresAuth(), (req, res) => {
     res.send(JSON.stringify(req.oidc.user));
   });
+
+
 
 app.set('port', 3011);
 

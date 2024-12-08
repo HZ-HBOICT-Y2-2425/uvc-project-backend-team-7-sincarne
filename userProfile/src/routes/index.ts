@@ -16,8 +16,7 @@ router.get("/", (req, res, next) => {
 
 
 router.post('/updateDiary',cors(),updateDiary);
-
-router.get("/getRecipes", cors(), getRecipes);
+router.get("/getRecipes", [cors()], getRecipes);
 router.get("/getRecipe/:recipe_id", cors(), getRecipe);
 router.post("/createRecipe", cors(), createRecipe);
 router.patch("/updateRecipe/:recipe_id", cors(), updateRecipe);
