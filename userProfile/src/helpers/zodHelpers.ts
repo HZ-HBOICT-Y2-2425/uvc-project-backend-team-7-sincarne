@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // Helper function to create a schema 
 export function createIntegerSchema () {
-	return z.string().transform((val, ctx) => {
+	return z.string().transform((val: string, ctx: { addIssue: (arg0: { code: any; message: string; }) => void; }) => {
 		const parsed = parseFloat(val); // Convert string to integer
 		if (isNaN(parsed)) {
 			ctx.addIssue({
@@ -26,7 +26,7 @@ export function formatZodErrors(errors : z.ZodIssue[]) {
 
 // Helper function to create a schema 
 export function createArraySchema () {
-	return z.string().transform((val, ctx) => {
+	return z.string().transform((val: string, ctx: { addIssue: (arg0: { code: any; message: string; }) => void; }) => {
 		// Desired type
 		const parsed : string[] = [];
 		// If the current interation was after a " char
