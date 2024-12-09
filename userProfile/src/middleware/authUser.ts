@@ -31,11 +31,12 @@ export async function authUser(req : Request, res : Response, next : NextFunctio
         VALUES (?,?,?,?,0)
     `
 
-
     db.serialize(()=>{
         // Check if user exists    
-        db.get(retrieveQuery,[userData?.sub],(row,err)=>{
+        console.log(userData?.sub)
+        db.get(retrieveQuery,[userData?.sub],(err,row)=>{
             // If a user has been retrieved
+            console.log(row);
             if(row != null){
                 // Add user id to request's parameters 
                 const parsed = userSchema.safeParse(row);
@@ -49,7 +50,8 @@ export async function authUser(req : Request, res : Response, next : NextFunctio
                 db.run(insertQuery,[userData?.sub,userData?.nickname,userData?.email,userData?.picture],(err)=>{
                     if(err){
                         console.log(err)
-                        res.status(500).send("cannot create a user")
+                        res.status(500).send();
+                        return
                     }
                 }).get(retrieveQuery,[userData?.sub],(row,err)=>{
                     // Add user id to request's parameters 
@@ -60,13 +62,16 @@ export async function authUser(req : Request, res : Response, next : NextFunctio
                         res.status(500).send(); 
                     }
                 })
+
+                db.close()
+                next();
+
             }
 
 
         })
     }
-        
     )
-    db.close()
+
     next();
 }

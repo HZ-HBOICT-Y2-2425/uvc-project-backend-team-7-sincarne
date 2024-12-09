@@ -24,7 +24,7 @@ export async function getRecipes(req: Request, res: Response) {
 			res.status(500).send();
 		}
 	});
-
+	console.log('hi')
 	const user_id = parseInt(req.params.user_id);
 
 	const getQuery = `SELECT * FROM Recipes
@@ -38,8 +38,9 @@ export async function getRecipes(req: Request, res: Response) {
 		}
 		if (rows.length === 0) {
 			res.status(200).json([]);
+		}else{
+			res.status(200).json(rows);
 		}
-		res.status(200).json(rows);
 	});
 	db.close();
 }

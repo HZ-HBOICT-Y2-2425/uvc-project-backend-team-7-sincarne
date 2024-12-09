@@ -11,7 +11,7 @@ const userProxy = createProxyMiddleware({
 	target: "http://localhost:3011", //will change when we host to heroku
 	changeOrigin: true,
 	pathRewrite: {
-		"^/user/login": "/login", // Forward /user/login to /login
+		"^user/login": "/login", // Forward /user/login to /login
 		"^/user/logout": "/logout", // Forward /user/logout to /logout
 		"^/user/profile": "/profile", // Forward /user/profile to /profile
 	},
@@ -38,7 +38,7 @@ router.use(
 	})
 );
 
-router.use("/nutri", requiresAuth(), cors(), nutriProxy);
+router.use("/nutri", cors(), nutriProxy);
 router.use("/user", requiresAuth(), cors(), userProxy);
 
 export default router;
