@@ -1,0 +1,14 @@
+{
+    "name": "microservices-monorepo",
+    "version": "1.0.0",
+    "engines": {
+        "node": "22.x"
+    },
+    "scripts": {
+        "start-all": "concurrently \"npm run start --prefix apigateway\" \"npm run start --prefix userProfile\" \"npm run start --prefix nutriData\"",
+        "build-all": "npm run build --prefix apigateway && npm run build --prefix userProfile && npm run build --prefix nutriData"
+    },
+    "dependencies": {
+        "concurrently": "^9.1.0"
+    }
+}

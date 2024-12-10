@@ -1,7 +1,8 @@
+# Use Node.js base image
 FROM node:22.11.0
 
 # Set the working directory
-WORKDIR /usr/src/apigateway
+WORKDIR /usr/src/NutriData
 
 # Copy all necessary files
 COPY package*.json tsconfig.json .env ./
@@ -13,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Expose the port
-EXPOSE 3000
+EXPOSE 3010
 
-# Start the application
+# Start the microservice
 CMD ["npm", "run", "dev"]
