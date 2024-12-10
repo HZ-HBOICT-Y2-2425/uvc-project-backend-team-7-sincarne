@@ -80,6 +80,7 @@ export async function getRecipe(req: Request, res: Response) {
 
 
 export async function createRecipe(req: Request, res: Response) {
+	console.log('hi')
 	// Connect to the database
 	const db = new sqlite.Database("./db.sqlite3", (err) => {
 		if (err) {
@@ -88,6 +89,7 @@ export async function createRecipe(req: Request, res: Response) {
 			res.status(500).send();
 		}
 	});
+	console.log('hi')
 
 	const user_id = parseInt(req.params.user_id);
 	
