@@ -13,6 +13,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.2",
     "express": "^4.17.1",
+    "microservices-monorepo": "file:..",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {

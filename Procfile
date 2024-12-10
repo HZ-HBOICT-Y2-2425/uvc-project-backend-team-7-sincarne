@@ -1,2 +1,2 @@
-web: npm run start-all
+web: npm run build-all && npm run start-all
 
