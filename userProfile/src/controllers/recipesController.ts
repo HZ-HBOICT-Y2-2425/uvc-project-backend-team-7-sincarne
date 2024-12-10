@@ -16,7 +16,7 @@ const sqlite = process.env.DEBUG === "TRUE" ? sqlite3.verbose() : sqlite3;
 // Retrieve all recipes for a user
 export async function getRecipes(req: Request, res: Response) {
 	// Connect to the database
-	const db = new sqlite.Database("./db.sqlite3", (err) => {
+	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
 		if (err) {
 			console.log("opening error: ", err);
 			// If databased failed to open the Api is unoperable
@@ -32,7 +32,7 @@ export async function getRecipes(req: Request, res: Response) {
 	WHERE user_id = ?`;
 
 	// todo: add pagination
-	db.all(getQuery, [user_id], (err, rows) => {
+	db.all(getQuery, [user_id], (err: any, rows: string | any[]) => {
 		if (err) {
 			console.log(err);
 			res.status(500).send();
@@ -48,7 +48,7 @@ export async function getRecipes(req: Request, res: Response) {
 // Retrieve a single recipe
 export async function getRecipe(req: Request, res: Response) {
 	// Connect to the database
-	const db = new sqlite.Database("./db.sqlite3", (err) => {
+	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
 		if (err) {
 			console.log("opening error: ", err);
 			// If databased failed to open the Api is unoperable
@@ -65,7 +65,7 @@ export async function getRecipe(req: Request, res: Response) {
 	const getQuery = `SELECT * FROM Recipes
 	WHERE id = ? AND user_id = ?`;
 
-	db.get(getQuery, [receipe_id, user_id], (err, row) => {
+	db.get(getQuery, [receipe_id, user_id], (err: any, row: any) => {
 		if (err) {
 			console.log(err);
 			res.status(500).send();
@@ -83,7 +83,7 @@ export async function getRecipe(req: Request, res: Response) {
 //todo: provide user_id through auth0
 export async function createRecipe(req: Request, res: Response) {
 	// Connect to the database
-	const db = new sqlite.Database("./db.sqlite3", (err) => {
+	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
 		if (err) {
 			console.log("opening error: ", err);
 			// If databased failed to open the Api is unoperable
@@ -129,7 +129,7 @@ export async function createRecipe(req: Request, res: Response) {
 // todo : provide option to update image_path and nutrition values
 export function updateRecipe(req: Request, res: Response) {
 	// Connect to the database
-	const db = new sqlite.Database("./db.sqlite3", (err) => {
+	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
 		if (err) {
 			console.log("opening error: ", err);
 			// If databased failed to open the Api is unoperable
@@ -187,7 +187,7 @@ export function updateRecipe(req: Request, res: Response) {
 
 	db.serialize(() => {
 		// validate if recipe_id exists
-		db.get(checkQuery, [receipe_id], (err, row) => {
+		db.get(checkQuery, [receipe_id], (err: any, row: any) => {
 			if (err) {
 				console.log(err);
 				res.status(500);
@@ -203,7 +203,7 @@ export function updateRecipe(req: Request, res: Response) {
 				db.run(
 					nameUpdateQuery,
 					[parsed.data.name, receipe_id],
-					(err) => {
+					(err: any) => {
 						if (err) {
 							console.log(err);
 							res.status(500).send();
@@ -219,7 +219,7 @@ export function updateRecipe(req: Request, res: Response) {
 				) {
 					console.log("updating ingredients");
 					// retrieve the current ingredients
-					db.get(ingredientsQuery, [receipe_id], (err, row) => {
+					db.get(ingredientsQuery, [receipe_id], (err: any, row: any) => {
 						if (err) {
 							console.log(err);
 							res.status(500).send();
@@ -240,7 +240,7 @@ export function updateRecipe(req: Request, res: Response) {
 						console.log(parsed.data);
 						// remove the ingredients that are marked to be deleted
 						if (parsed.data.to_delete !== undefined) {
-							parsed.data.to_delete.forEach((ingredient) => {
+							parsed.data.to_delete.forEach((ingredient: any) => {
 								const index =
 									currentIngredients.indexOf(ingredient);
 								if (index > -1) {
@@ -252,14 +252,14 @@ export function updateRecipe(req: Request, res: Response) {
 						if (parsed.data.to_add !== undefined) {
 							//check if the ingredient is already in the list
 							//if not add it after surruonding it with ""
-							parsed.data.to_add.forEach((ingredient) => {
+							parsed.data.to_add.forEach((ingredient: any) => {
 								if (!currentIngredients.includes(ingredient)) {
 									currentIngredients.push(ingredient);
 								}
 							});
 						}
 
-						currentIngredients = currentIngredients.map((ingredient) => {
+						currentIngredients = currentIngredients.map((ingredient: any) => {
 							return `"${ingredient}"`;
 						});
 						// update the ingredients
@@ -269,7 +269,7 @@ export function updateRecipe(req: Request, res: Response) {
 								"[" + currentIngredients.join(",") + "]",
 								receipe_id,
 							],
-							(err) => {
+							(err: any) => {
 								if (err) {
 									console.log(err);
 									res.status(500).send();
@@ -286,7 +286,7 @@ export function updateRecipe(req: Request, res: Response) {
 }
 export async function deleteRecipe(req : Request, res: Response){
 	// Connect to the database
-	const db = new sqlite.Database("./db.sqlite3", (err) => {
+	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
 		if (err) {
 			console.log("opening error: ", err);
 			// If databased failed to open the Api is unoperable
@@ -305,7 +305,7 @@ export async function deleteRecipe(req : Request, res: Response){
 
 	db.serialize(() => {
 		//todo: validate if user is authorized to delete this recipe
-		db.run(deleteQuery, [receipe_id], (err) => {
+		db.run(deleteQuery, [receipe_id], (err: any) => {
 			if (err) {
 				console.log(err);
 				res.status(500).send();

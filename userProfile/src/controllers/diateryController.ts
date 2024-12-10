@@ -8,7 +8,7 @@ const sqlite = process.env.DEBUG === "TRUE" ? sqlite3.verbose() : sqlite3;
 
 export async function updateDiary(req: Request, res: Response) {
 	// Connect to the database
-	const db = new sqlite.Database("./db.sqlite3", (err) => {
+	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
 		if (err) {
 			console.log("opening error: ", err);
 			// If databased failed to open the Api is unoperable
@@ -67,7 +67,7 @@ export async function updateDiary(req: Request, res: Response) {
 	const date = new Date().toLocaleDateString("en-GB");
 
 	db.serialize(() => {
-		db.get(retrieveQuery, [parsed.data.user_id, date], (err, row) => {
+		db.get(retrieveQuery, [parsed.data.user_id, date], (err: any, row: any) => {
 			if (err) {
 				console.log("retrieval error: ", err);
 				res.status(500).send();
@@ -103,7 +103,7 @@ export async function updateDiary(req: Request, res: Response) {
 				db.run(
 					updateQuery,
 					[...Object.values(updatedData), parsed.data.user_id, date],
-					(err) => {
+					(err: any) => {
 						if (err) {
 							console.log("update error: ", err);
 							res.status(500).send();
@@ -122,7 +122,7 @@ export async function updateDiary(req: Request, res: Response) {
 				db.run(
 					insertQuery,
 					[parsed.data.user_id, ...Object.values(updatedData), date],
-					(err) => {
+					(err: any) => {
 						if (err) {
 							console.log("insert error: ", err);
 							res.status(500).send();

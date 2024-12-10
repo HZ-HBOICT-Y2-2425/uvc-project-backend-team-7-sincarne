@@ -8,7 +8,8 @@ const router = express.Router();
 
 // create a proxy for each microservice
 const userProxy = createProxyMiddleware({
-  target: 'http://localhost:3011', //will change when we host to heroku
+  //target: 'http://UserProfile:3011', //use this for docker compose
+  target: 'http://localhost:3011', //use this for dev all
   changeOrigin: true,
   pathRewrite: {
     '^/user/login': '/login',    // Forward /user/login to /login
@@ -18,7 +19,8 @@ const userProxy = createProxyMiddleware({
 });
 
 const nutriProxy = createProxyMiddleware({
-  target: 'http://localhost:3010', //will change when we host to heroku
+  //target: 'http://NutriData:3010', //use this for docker compose
+  target: 'http://localhost:3010', //use this for dev all
   changeOrigin: true,
   //this allows us to retrieve the user without configuring in each microservice
   onProxyReq: (proxyReq, req, res) => {
