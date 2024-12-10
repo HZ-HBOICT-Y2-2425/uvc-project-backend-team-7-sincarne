@@ -32,7 +32,7 @@ app.get('/profile', requiresAuth(), (req, res) => {
     res.send(JSON.stringify(req.oidc.user));
   });
 
-app.set('port', 3011);
+app.set('port', process.env.PORT || 3011);
 
 const server = app.listen(app.get('port'), () => {
   console.log(`🍿 Express running`);

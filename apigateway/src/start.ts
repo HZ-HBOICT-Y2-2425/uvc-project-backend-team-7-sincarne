@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
 app.use('/', router);
-app.set('port', 3000);
+app.set('port', process.env.PORT || 3000);
 
 const server = app.listen(app.get('port'), () => {
 	console.log("server has started");
