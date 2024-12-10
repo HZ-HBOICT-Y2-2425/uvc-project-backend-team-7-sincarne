@@ -7,7 +7,7 @@
     "scripts": {
         "start-all": "concurrently \"npm run start --prefix apigateway\" \"npm run start --prefix userProfile\" \"npm run start --prefix nutriData\"",
         "build-all": "npm run build --prefix apigateway && npm run build --prefix userProfile && npm run build --prefix nutriData",
-        "install-all" : "npm install --prefix apigateway && npm install --prefix userProfile && npm install --prefix nutriData"
+        "heroku-postbuild" : "npm install --prefix apigateway && npm install --prefix userProfile && npm install --prefix nutriData"
     },
     "dependencies": {
         "concurrently": "^9.1.0"
