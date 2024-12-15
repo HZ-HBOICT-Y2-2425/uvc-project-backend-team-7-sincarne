@@ -1,8 +1,9 @@
 import express from "express";
+import { Request, Response } from "express";
 import { auth } from "express-openid-connect";
 import { requiresAuth } from "express-openid-connect";
 import cors from "cors";
-import { createProxyMiddleware } from "http-proxy-middleware";
+import { createProxyMiddleware, fixRequestBody } from "http-proxy-middleware";
 
 const router = express.Router();
 
@@ -15,11 +16,13 @@ const userProxy = createProxyMiddleware({
 		"^/user/logout": "/logout", // Forward /user/logout to /logout
 		"^/user/profile": "/profile", // Forward /user/profile to /profile
 	},
+	onProxyReq: fixRequestBody
 });
 
 const nutriProxy = createProxyMiddleware({
 	target: "http://localhost:3010", //will change when we host to heroku
 	changeOrigin: true,
+	onProxyReq: fixRequestBody
 });
 
 
