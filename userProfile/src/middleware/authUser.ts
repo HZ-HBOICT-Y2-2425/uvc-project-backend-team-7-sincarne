@@ -7,8 +7,8 @@ import z from "zod";
 const sqlite = process.env.DEBUG === "TRUE" ? sqlite3.verbose() : sqlite3;
 
 export async function authUser(req : Request, res : Response, next : NextFunction){
-    console.log(req.oidc.user?.sub)
     const userData = req.oidc.user
+    console.log('auth called')
 
 	const db = new sqlite.Database("./db.sqlite3", (err) => {
 		if (err) {
@@ -33,15 +33,15 @@ export async function authUser(req : Request, res : Response, next : NextFunctio
 
     db.serialize(()=>{
         // Check if user exists    
-        console.log(userData?.sub)
         db.get(retrieveQuery,[userData?.sub],(err,row)=>{
             // If a user has been retrieved
-            console.log(row);
+            console.log("row",row);
             if(row != null){
                 // Add user id to request's parameters 
                 const parsed = userSchema.safeParse(row);
                 if(parsed.success){
-                    req.params.user_id = parsed.data.id.toString()
+                    req.user_id = parsed.data.id.toString()
+                    console.log("req user_id appeneded with : ", req.user_id)
                 }else{
                     res.status(500).send(); 
                 }
@@ -51,27 +51,25 @@ export async function authUser(req : Request, res : Response, next : NextFunctio
                     if(err){
                         console.log(err)
                         res.status(500).send();
-                        return
                     }
                 }).get(retrieveQuery,[userData?.sub],(row,err)=>{
                     // Add user id to request's parameters 
                     const parsed = userSchema.safeParse(row);
                     if(parsed.success){
-                        req.params.user_id = parsed.data.id.toString()
+                        req.user_id = parsed.data.id.toString()
+                        console.log("req user_id appeneded with : ", req.user_id)
                     }else{
                         res.status(500).send(); 
                     }
                 })
 
-                db.close()
-                next();
 
             }
-
+            db.close()
+            next();
 
         })
     }
     )
 
-    next();
 }

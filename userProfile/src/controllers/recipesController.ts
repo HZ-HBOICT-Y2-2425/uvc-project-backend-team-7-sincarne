@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import sqlite3 from "sqlite3";
 import dotenv from "dotenv";
-import z from "zod";
+import z, { date } from "zod";
 import {
 	createIntegerSchema,
 	formatZodErrors,
@@ -12,7 +12,7 @@ import {
 const sqlite = process.env.DEBUG === "TRUE" ? sqlite3.verbose() : sqlite3;
 
 
-
+// todo: sending or evne returning after status(500) doesn't stop execution for some reason
 // Retrieve all recipes for a user
 export async function getRecipes(req: Request, res: Response) {
 
@@ -24,8 +24,10 @@ export async function getRecipes(req: Request, res: Response) {
 			res.status(500).send();
 		}
 	});
-	console.log('hi')
-	const user_id = parseInt(req.params.user_id);
+	console.log(req.user_id)
+	console.log(req.user_id)
+
+	const user_id = req.user_id;
 
 	const getQuery = `SELECT * FROM Recipes
 	WHERE user_id = ?`;
@@ -56,7 +58,7 @@ export async function getRecipe(req: Request, res: Response) {
 		}
 	});
 
-	const user_id = parseInt(req.params.user_id);
+	const user_id = parseInt(req.user_id);
 
 	// Retrieve the recipe_id from the request
 	const receipe_id = req.params.recipe_id;
@@ -80,7 +82,6 @@ export async function getRecipe(req: Request, res: Response) {
 
 
 export async function createRecipe(req: Request, res: Response) {
-	console.log('hi')
 	// Connect to the database
 	const db = new sqlite.Database("./db.sqlite3", (err) => {
 		if (err) {
@@ -89,19 +90,17 @@ export async function createRecipe(req: Request, res: Response) {
 			res.status(500).send();
 		}
 	});
-	console.log('hi')
 
-	const user_id = parseInt(req.params.user_id);
+	console.log("req ", req.user_id);
+
+	const user_id = parseInt(req.user_id);
+
+	console.log("req parsed ",user_id);
 	
 	// Type checking received data provide null for empty values
 	const recipeSchema = z.object({
 		name: z.string(),
 		image_path: z.string().nullable().default(null),
-		ingredients: z.string().nullable().default(null),
-		total_calories: createIntegerSchema().nullable().default(null),
-		total_protein: createIntegerSchema().nullable().default(null),
-		total_carbs: createIntegerSchema().nullable().default(null),
-		total_fats: createIntegerSchema().nullable().default(null),
 	});
 
 	const parsed = recipeSchema.safeParse(req.body);
@@ -115,13 +114,13 @@ export async function createRecipe(req: Request, res: Response) {
 
 	const insertQuery = `
 		INSERT INTO Recipes 
-		(user_id,name,image_path,ingredients,total_calories,total_protein,
+		(user_id,name,image_path,total_calories,total_protein,
 		total_carbs,total_fats)
 		VALUES (?,?,?,?,?,?,?,?)
 	`;
 
 	db.serialize(() => {
-		db.run(insertQuery, [user_id,...Object.values(parsed.data)]);
+		db.run(insertQuery, [user_id,parsed.data.name,parsed.data.image_path,0,0,0,0]);
 	});
 
 	res.status(200).send();
@@ -140,7 +139,9 @@ export function updateRecipe(req: Request, res: Response) {
 	// Retrieve the recipe_id from the request
 	const receipe_id = req.params.recipe_id;
 
-	const user_id = parseInt(req.params.user_id);
+
+	
+	const user_id = parseInt(req.user_id);
 	// Type checking received data 
 	const updateSchema = z.object({
 		name: z.string().optional(),
@@ -161,6 +162,9 @@ export function updateRecipe(req: Request, res: Response) {
 		res.status(400).json(errors_messages);
 		return;
 	}
+
+
+
 
 	// SQL queries to update the recipe
 
@@ -194,7 +198,7 @@ export function updateRecipe(req: Request, res: Response) {
 		db.get(checkQuery, [receipe_id,user_id], (err, row) => {
 			if (err) {
 				console.log(err);
-				res.status(500);
+				res.status(500).send();
 			}
 			if (!row) {
 				res.status(404).send("Recipe not found or invalid id");
@@ -301,7 +305,7 @@ export async function deleteRecipe(req : Request, res: Response){
 	// Retrieve the recipe_id from the request
 	const receipe_id = req.params.recipe_id;
 
-	const user_id = parseInt(req.params.user_id);
+	const user_id = parseInt(req.user_id);
 
 	const deleteQuery = `
 		DELETE FROM Recipes

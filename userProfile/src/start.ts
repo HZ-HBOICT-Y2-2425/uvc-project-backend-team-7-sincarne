@@ -25,7 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(auth(config));
 
 
-app.use("/user", requiresAuth(), authUser, router),
+app.use("/user", requiresAuth(), router),
 	//demonstrates how to access thr user data
 	app.get("/profile", requiresAuth(), (req, res) => {
 		res.send(JSON.stringify(req.oidc.user));
