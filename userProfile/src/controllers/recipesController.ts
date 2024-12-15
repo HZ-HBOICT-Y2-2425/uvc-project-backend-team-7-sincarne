@@ -116,7 +116,7 @@ export async function createRecipe(req: Request, res: Response) {
 		INSERT INTO Recipes 
 		(user_id,name,image_path,total_calories,total_protein,
 		total_carbs,total_fats)
-		VALUES (?,?,?,?,?,?,?,?)
+		VALUES (?,?,?,?,?,?,?)
 	`;
 
 	db.serialize(() => {
