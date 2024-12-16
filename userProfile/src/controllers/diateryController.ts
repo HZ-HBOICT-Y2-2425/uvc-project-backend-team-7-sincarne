@@ -69,11 +69,7 @@ export async function updateDiary(req: Request, res: Response) {
 	const date = new Date().toLocaleDateString("en-GB");
 
 	db.serialize(() => {
-<<<<<<< HEAD
 		db.get(retrieveQuery, [user_id, date], (err, row) => {
-=======
-		db.get(retrieveQuery, [parsed.data.user_id, date], (err: any, row: any) => {
->>>>>>> 27ba444103043312bd0c76b31c595d9c7c1813f5
 			if (err) {
 				console.log("retrieval error: ", err);
 				res.status(500).send();
@@ -108,13 +104,8 @@ export async function updateDiary(req: Request, res: Response) {
 				};
 				db.run(
 					updateQuery,
-<<<<<<< HEAD
 					[...Object.values(updatedData), user_id, date],
 					(err) => {
-=======
-					[...Object.values(updatedData), parsed.data.user_id, date],
-					(err: any) => {
->>>>>>> 27ba444103043312bd0c76b31c595d9c7c1813f5
 						if (err) {
 							console.log("update error: ", err);
 							res.status(500).send();
@@ -132,13 +123,9 @@ export async function updateDiary(req: Request, res: Response) {
 				};
 				db.run(
 					insertQuery,
-<<<<<<< HEAD
 					[user_id, ...Object.values(updatedData), date],
 					(err) => {
-=======
-					[parsed.data.user_id, ...Object.values(updatedData), date],
-					(err: any) => {
->>>>>>> 27ba444103043312bd0c76b31c595d9c7c1813f5
+
 						if (err) {
 							console.log("insert error: ", err);
 							res.status(500).send();

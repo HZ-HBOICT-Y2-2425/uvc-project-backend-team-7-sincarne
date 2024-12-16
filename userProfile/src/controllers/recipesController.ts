@@ -193,11 +193,7 @@ export function updateRecipe(req: Request, res: Response) {
 
 	db.serialize(() => {
 		// validate if recipe_id exists
-<<<<<<< HEAD
 		db.get(checkQuery, [receipe_id,user_id], (err, row) => {
-=======
-		db.get(checkQuery, [receipe_id], (err: any, row: any) => {
->>>>>>> 27ba444103043312bd0c76b31c595d9c7c1813f5
 			if (err) {
 				console.log(err);
 				res.status(500).send();
@@ -212,13 +208,8 @@ export function updateRecipe(req: Request, res: Response) {
 			if (parsed.data.name) {
 				db.run(
 					nameUpdateQuery,
-<<<<<<< HEAD
 					[parsed.data.name, receipe_id,user_id],
 					(err) => {
-=======
-					[parsed.data.name, receipe_id],
-					(err: any) => {
->>>>>>> 27ba444103043312bd0c76b31c595d9c7c1813f5
 						if (err) {
 							console.log(err);
 							res.status(500).send();
@@ -234,11 +225,7 @@ export function updateRecipe(req: Request, res: Response) {
 				) {
 					console.log("updating ingredients");
 					// retrieve the current ingredients
-<<<<<<< HEAD
 					db.get(ingredientsQuery, [receipe_id,user_id], (err, row) => {
-=======
-					db.get(ingredientsQuery, [receipe_id], (err: any, row: any) => {
->>>>>>> 27ba444103043312bd0c76b31c595d9c7c1813f5
 						if (err) {
 							console.log(err);
 							res.status(500).send();
@@ -325,12 +312,8 @@ export async function deleteRecipe(req : Request, res: Response){
 
 
 	db.serialize(() => {
-<<<<<<< HEAD
 		db.run(deleteQuery, [receipe_id, user_id], (err) => {
-=======
 		//todo: validate if user is authorized to delete this recipe
-		db.run(deleteQuery, [receipe_id], (err: any) => {
->>>>>>> 27ba444103043312bd0c76b31c595d9c7c1813f5
 			if (err) {
 				console.log(err);
 				res.status(500).send();
