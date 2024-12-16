@@ -24,8 +24,6 @@ export async function getRecipes(req: Request, res: Response) {
 			res.status(500).send();
 		}
 	});
-	console.log(req.user_id)
-	console.log(req.user_id)
 
 	const user_id = req.user_id;
 
@@ -72,7 +70,7 @@ export async function getRecipe(req: Request, res: Response) {
 			res.status(500).send();
 		}
 		if (!row) {
-			res.status(404).send("Recipe not found or invalid id");
+			res.status(404).send("Recipe not found");
 		}
 		res.status(200).json(row);
 	});

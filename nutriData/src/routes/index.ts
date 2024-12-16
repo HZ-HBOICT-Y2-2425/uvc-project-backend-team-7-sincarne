@@ -13,7 +13,6 @@ router.get('/nutri/search',cors(), (req, res) => {
 });
 
 router.get('/search/:ingredient',cors(),searchFoodsOptionsByName)
-router.post('/search/',cors(),searchFoodsOptionsByName)
 router.get('/getNutritions/:ingredient_code',cors(),getNutritions)
 router.get('/getSuggestions/protein/:ingredient_code',cors(),getMeatlessSuggestionsProtein)
 router.get('/getSuggestions/calories/:ingredient_code',cors(),getMeatlessSuggestionsKcal)

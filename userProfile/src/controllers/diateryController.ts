@@ -129,7 +129,7 @@ export async function updateDiary(req: Request, res: Response) {
 							console.log("insert error: ", err);
 							res.status(500).send();
 						}
-						res.status(200).send({ message: "New entry created" });
+						res.status(201).send({ message: "New entry created" });
 					}
 				);
 			}

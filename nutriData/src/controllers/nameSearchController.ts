@@ -6,9 +6,6 @@ import { z } from "zod";
 dotenv.config({ path: ".env" });
 
 export async function searchFoodsOptionsByName(req: Request, res: Response) {
-	console.log('hi')
-	res.status(200).send("temp remove");
-	return;
 
 	// Open sqlite in verbose for better error tracing if the app is in debug mode
 	const sqlite = process.env.DEBUG === "TRUE" ? sqlite3.verbose() : sqlite3;
