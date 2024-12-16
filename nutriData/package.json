@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "dev": "concurrently -n \"TypeScript,Node\" -c \"blue,green\" \"npx tsc -w\" \"npx nodemon dist/start.js\""
+    "dev": "concurrently -n \"TypeScript,Node\" -c \"blue,green\" \"npx tsc -w\" \"npx nodemon dist/start.js\"",
+    "start": "node dist/start.js",
+    "build": "tsc"
   },
   "author": "",
   "license": "ISC",

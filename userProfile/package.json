@@ -5,7 +5,9 @@
   "scripts": {
     "dev-debug": "set DEBUG=express:* & concurrently -n \"TypeScript,Node\" -c \"blue,green\" \"npx tsc -w\" \"npx nodemon dist/start.js\"",
     "dev": "concurrently -n \"TypeScript,Node\" -c \"blue,green\" \"npx tsc -w\" \"npx nodemon dist/start.js\"",
-    "test": "jest --config=jest.config.js"
+    "test": "jest --config=jest.config.js",
+    "start": "node dist/start.js",
+    "build": "tsc"
   },
   "author": "",
   "license": "ISC",
