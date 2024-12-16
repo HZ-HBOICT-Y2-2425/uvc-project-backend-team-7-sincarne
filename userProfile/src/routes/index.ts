@@ -5,8 +5,10 @@ import {
 	updateRecipe,
 	getRecipe,
 	getRecipes,
+	deleteRecipe
 } from "../controllers/recipesController";
 import { updateDiary } from "../controllers/diateryController";
+import { authUser } from "../middleware/authUser";
 
 const router = express.Router();
 
@@ -16,10 +18,10 @@ router.get("/", (req, res, next) => {
 
 
 router.post('/updateDiary',cors(),updateDiary);
-
-router.get("/getRecipes", cors(), getRecipes);
+router.get("/getRecipes",[ cors(),authUser], getRecipes);
 router.get("/getRecipe/:recipe_id", cors(), getRecipe);
-router.post("/createRecipe", cors(), createRecipe);
+router.post("/createRecipe", [cors(),authUser], createRecipe);
 router.patch("/updateRecipe/:recipe_id", cors(), updateRecipe);
+router.delete("/deleteRecipe/:recipe_id", cors(), deleteRecipe);
 
 export default router;

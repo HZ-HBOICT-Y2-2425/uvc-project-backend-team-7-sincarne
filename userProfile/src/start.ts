@@ -1,16 +1,18 @@
-import express from 'express';
-import { auth } from 'express-openid-connect';
-import { requiresAuth } from 'express-openid-connect';
-import * as dotenv from 'dotenv';
-dotenv.config({ path: require('path').resolve(__dirname, '../.env') });
+import express from "express";
+import { auth } from "express-openid-connect";
+import { requiresAuth } from "express-openid-connect";
+import * as dotenv from "dotenv";
+import router from "./routes";
+import { authUser } from "./middleware/authUser";
+dotenv.config({ path: require("path").resolve(__dirname, "../.env") });
 
 const config = {
-  authRequired: false,
-  auth0Logout: true,
-  secret: process.env.SECRET,
-  baseURL: 'http://localhost:3011', //will change upon hoating ?? 
-  clientID: process.env.CLIENTID,
-  issuerBaseURL: 'https://dev-v85ldbuj2bj2iv0y.us.auth0.com'
+	authRequired: false,
+	auth0Logout: true,
+	secret: process.env.SECRET,
+	baseURL: "http://localhost:3011", //will change upon hoating ??
+	clientID: process.env.CLIENTID,
+	issuerBaseURL: "https://dev-v85ldbuj2bj2iv0y.us.auth0.com",
 };
 
 const app = express();
@@ -22,6 +24,19 @@ app.use(express.urlencoded({ extended: true }));
 // auth router attaches /login, /logout, and /callback routes to the baseURL
 app.use(auth(config));
 
+<<<<<<< HEAD
+
+app.use("/user", requiresAuth(), router),
+	//demonstrates how to access thr user data
+	app.get("/profile", requiresAuth(), (req, res) => {
+		res.send(JSON.stringify(req.oidc.user));
+	});
+
+app.set("port", 3011);
+
+const server = app.listen(app.get("port"), () => {
+	console.log(`🍿 Express running`);
+=======
 // this just redirects to the main page, can be edited.
 app.get('/', (req, res) => {
   res.redirect('https://sincarne-08e9ac5ee7bf.herokuapp.com/');
@@ -36,4 +51,5 @@ app.set('port', process.env.PORT || 3011);
 
 const server = app.listen(app.get('port'), () => {
   console.log(`🍿 Express running`);
+>>>>>>> 27ba444103043312bd0c76b31c595d9c7c1813f5
 });

@@ -15,9 +15,11 @@ export async function updateDiary(req: Request, res: Response) {
 			res.status(500).send();
 		}
 	});
+
+	const user_id = parseInt(req.params.user_id);
+
 	// Schema for the data received from the client
 	const updateSchema = z.object({
-		user_id: createIntegerSchema(),
 		total_calories: createIntegerSchema().nullable().default(null),
 		total_protein: createIntegerSchema().nullable().default(null),
 		total_carbs: createIntegerSchema().nullable().default(null),
@@ -67,7 +69,7 @@ export async function updateDiary(req: Request, res: Response) {
 	const date = new Date().toLocaleDateString("en-GB");
 
 	db.serialize(() => {
-		db.get(retrieveQuery, [parsed.data.user_id, date], (err: any, row: any) => {
+		db.get(retrieveQuery, [user_id, date], (err, row) => {
 			if (err) {
 				console.log("retrieval error: ", err);
 				res.status(500).send();
@@ -102,8 +104,8 @@ export async function updateDiary(req: Request, res: Response) {
 				};
 				db.run(
 					updateQuery,
-					[...Object.values(updatedData), parsed.data.user_id, date],
-					(err: any) => {
+					[...Object.values(updatedData), user_id, date],
+					(err) => {
 						if (err) {
 							console.log("update error: ", err);
 							res.status(500).send();
@@ -121,13 +123,14 @@ export async function updateDiary(req: Request, res: Response) {
 				};
 				db.run(
 					insertQuery,
-					[parsed.data.user_id, ...Object.values(updatedData), date],
-					(err: any) => {
+					[user_id, ...Object.values(updatedData), date],
+					(err) => {
+
 						if (err) {
 							console.log("insert error: ", err);
 							res.status(500).send();
 						}
-						res.status(200).send({ message: "New entry created" });
+						res.status(201).send({ message: "New entry created" });
 					}
 				);
 			}

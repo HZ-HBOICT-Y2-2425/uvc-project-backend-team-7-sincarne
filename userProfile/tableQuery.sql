@@ -1,7 +1,9 @@
 CREATE TABLE Users (
 	id INTEGER NOT NULL PRIMARY KEY,
-	name TEXT,
-	auth0Indetyfier TEXT,
+	auth0Indetyfier TEXT NOT NULL,
+	nickname TEXT,
+	email TEXT,
+	picture TEXT,
 	CO2Prevented NUMBER
 );
 
