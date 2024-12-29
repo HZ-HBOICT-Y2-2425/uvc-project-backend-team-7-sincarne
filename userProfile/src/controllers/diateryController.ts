@@ -16,7 +16,7 @@ export async function updateDiary(req: Request, res: Response) {
 		}
 	});
 
-	const user_id = parseInt(req.params.user_id);
+	const user_id = req.user_id;
 
 	// Schema for the data received from the client
 	const updateSchema = z.object({

@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import sqlite3 from "sqlite3";
 import dotenv from "dotenv";
 import z, { date, object } from "zod";
+import db from '../../db'
+
 import {
 	createIntegerSchema,
 	formatZodErrors,
@@ -15,24 +17,18 @@ const sqlite = process.env.DEBUG === "TRUE" ? sqlite3.verbose() : sqlite3;
 // Retrieve all recipes for a user
 export async function getRecipes(req: Request, res: Response) {
 	// Connect to the database
-	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
-		if (err) {
-			console.log("opening error: ", err);
-			// If databased failed to open the Api is unoperable
-			res.status(500).send();
-		}
-	});
 
 	const user_id = req.user_id;
 
 	const getQuery = `SELECT * FROM Recipes
-	WHERE user_id = ?`;
+	WHERE user_id = ? `;
 
 	// todo: add pagination
 	db.all(getQuery, [user_id], (err: any, rows: string | any[]) => {
 		if (err) {
 			console.log(err);
 			res.status(500).send();
+			return;
 		}
 		if (rows.length === 0) {
 			res.status(200).json([]);
@@ -40,27 +36,26 @@ export async function getRecipes(req: Request, res: Response) {
 			res.status(200).json(rows);
 		}
 	});
-	db.close();
 }
 
 // Retrieve a single recipe
 export async function getRecipe(req: Request, res: Response) {
 	// Connect to the database
-	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
-		if (err) {
-			console.log("opening error: ", err);
-			// If databased failed to open the Api is unoperable
-			res.status(500).send();
-		}
-	});
 
-	const user_id = parseInt(req.user_id);
+	const user_id = req.user_id;
 
 	// Retrieve the recipe_id from the request
 	const receipe_id = req.params.recipe_id;
 
 	const getQuery = `SELECT * FROM Recipes
-	WHERE id = ? AND user_id = ?`;
+	WHERE id = ? AND user_id = ?
+	`;
+
+	const ingredientsQuery = `
+		SELECT ing.name, ing.amount from Ingredients_to_recipes as Itr 
+		JOIN Ingredients as ing on Itr.ingredient_id = ing.id
+		WHERE Itr.recipe_id = ?
+	`;
 
 	db.get(getQuery, [receipe_id, user_id], (err: any, row: any) => {
 		if (err) {
@@ -70,20 +65,19 @@ export async function getRecipe(req: Request, res: Response) {
 		if (!row) {
 			res.status(404).send("Recipe not found");
 		}
-		res.status(200).json(row);
+		db.all(ingredientsQuery, [receipe_id], (err, ingredients) => {
+			if (err) {
+				console.log(err);
+				res.status(500).send();
+			}
+			row.ingredients = ingredients;
+			res.status(200).json(row);
+		});
 	});
-	db.close();
 }
 
 export async function createRecipe(req: Request, res: Response) {
 	// Connect to the database
-	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
-		if (err) {
-			console.log("opening error: ", err);
-			// If databased failed to open the Api is unoperable
-			res.status(500).send();
-		}
-	});
 
 	console.log("req ", req.user_id);
 
@@ -126,18 +120,10 @@ export async function createRecipe(req: Request, res: Response) {
 	});
 
 	res.status(200).send();
-	db.close();
 }
-// todo : provide option to update image_path and nutrition values
+// todo : provide option to update image_path 
 export function updateRecipe(req: Request, res: Response) {
 	// Connect to the database
-	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
-		if (err) {
-			console.log("opening error: ", err);
-			// If databased failed to open the Api is unoperable
-			res.status(500).send();
-		}
-	});
 	// Retrieve the recipe_id from the request
 	const receipe_id = req.params.recipe_id;
 
@@ -181,7 +167,6 @@ export function updateRecipe(req: Request, res: Response) {
 		WHERE id = ? and user_id = ?
 	`;
 
-
 	const checkQuery = `
 		SELECT * FROM Recipes
 		WHERE id = ? and user_id = ?
@@ -197,10 +182,10 @@ export function updateRecipe(req: Request, res: Response) {
 			}
 			if (!row) {
 				res.status(404).send("Recipe not found or invalid id");
-			}else{
+			} else {
 				const parsedQuery = retrieveSchema.safeParse(row);
-				if(!parsedQuery.success){
-					console.log(parsedQuery.error)
+				if (!parsedQuery.success) {
+					console.log(parsedQuery.error);
 					return;
 				}
 
@@ -219,7 +204,7 @@ export function updateRecipe(req: Request, res: Response) {
 						(parsed.data.total_fats ?? 0) +
 						(parsedQuery.data.total_fats ?? 0),
 				};
-				db.run(UpdateQuery,[Object.values(updatedData)]);
+				db.run(UpdateQuery, [Object.values(updatedData)]);
 			}
 		});
 	});
@@ -227,14 +212,6 @@ export function updateRecipe(req: Request, res: Response) {
 	res.status(200).send();
 }
 export async function deleteRecipe(req: Request, res: Response) {
-	// Connect to the database
-	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
-		if (err) {
-			console.log("opening error: ", err);
-			// If databased failed to open the Api is unoperable
-			res.status(500).send();
-		}
-	});
 
 	// Retrieve the recipe_id from the request
 	const receipe_id = req.params.recipe_id;
@@ -260,14 +237,6 @@ export async function deleteRecipe(req: Request, res: Response) {
 
 // user/recipes/:recipe_id/updateIngredient
 export async function updateIngredient(req: Request, res: Response) {
-	// Connect to the database
-	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
-		if (err) {
-			console.log("opening error: ", err);
-			// If databased failed to open the Api is unoperable
-			res.status(500).send();
-		}
-	});
 	// Current authorized user
 	const user = req.user_id;
 	// Recipe id
@@ -275,16 +244,17 @@ export async function updateIngredient(req: Request, res: Response) {
 
 	const inputSchema = z.object({
 		ingredient_name: z.string(),
-		amount: createIntegerSchema(),
+		amount: z.number(),
 	});
 
+	
 
 	const retrivialSchema = z.object({
 		id: z.number(),
-		ingredient_name: z.string(),
+		name: z.string(),
 		amount: z.number(),
 	});
-	
+
 	const parsed = inputSchema.safeParse(req.body);
 
 	if (parsed.error) {
@@ -300,30 +270,18 @@ export async function updateIngredient(req: Request, res: Response) {
 	`;
 
 	const ingredientsRetrivialQuery = `
-		SELECT Ing.Id, Ing.name, Ing.amount FROM Ingredients_to_Recipe as bridge 
+		SELECT Ing.Id, Ing.name, Ing.amount FROM Ingredients_to_recipes as bridge 
 		JOIN Ingredients as Ing ON bridge.ingredient_id = Ing.id
 		WHERE bridge.recipe_id  = ?
 	`;
-	const ingredientInsertionQuery =`
-		INSERT INTO Ingredients(name,amount)
-		VALUES (?,?);
-	`
 	const ingredientDeletionQuery = `
 		DELETE FROM Ingredients 
 		WHERE id = ?
-	`
+	`;
 	const ingredientUpdateQuery = `
 		UPDATE Ingredients SET amount = ? 
 		WHERE id = ?
-	`
-	const bridgeInsertionQuery = `
-		INSERT INTO Ingredients_to_recipes
-		VALUES (?,?);
-	`
-
-
-
-	const ingredients: { ingreident_name: string; amount: number }[] = [];
+	`;
 
 	db.serialize(() => {
 		// Get recipe
@@ -341,6 +299,7 @@ export async function updateIngredient(req: Request, res: Response) {
 			}
 			// Recipe returned
 			else {
+				res.status(200);
 				// Retrive all the ingredients attached to the recipe
 				db.all(ingredientsRetrivialQuery, recipe_id, (err, rows) => {
 					if (err) {
@@ -348,41 +307,174 @@ export async function updateIngredient(req: Request, res: Response) {
 						res.status(500).send();
 						return;
 					}
-					if(rows){
-						for(row in rows){
-							// Parsed results for type safety
-							const parsedQuery = retrivialSchema.safeParse(row);
-							if(parsed.error){
+					// flag to check if update was successful or insertion is needed
+					let flag = false;
+					rows.forEach((row) => {
+						// Parsed results for type safety
+						const parsedQuery = retrivialSchema.safeParse(row);
+						if (!parsedQuery.success) {
+							console.log(err);
+							res.status(500).send();
+							return;
+						}
+						// If the ingredient is present update it's amount
+						if (
+							parsedQuery.data?.name ===
+							parsed.data.ingredient_name
+						) {
+							// If the amount is 0 remove the ingredient
+							// todo: figure out cascading or remove bridge here too
+							if (!parsed.data.amount)
+								db.run(
+									ingredientDeletionQuery,
+									parsedQuery.data.id
+								);
+							// Alternatively update the data with appropreate ammount
+							else
+								db.run(
+									ingredientUpdateQuery,
+									parsed.data.amount,
+									parsedQuery.data.id
+								);
+							flag = true;
+						}
+
+					})
+					if(!flag){
+						res.status(404).send("ingrediet isn't present in the recipe")
+					}
+					res.send();
+
+				});
+			}
+		});
+	});
+}
+
+
+export async function addIngredient(req: Request, res: Response) {
+	// Connect to the database
+	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
+		if (err) {
+			console.log("opening error: ", err);
+			// If databased failed to open the Api is unoperable
+			res.status(500).send();
+		}
+		// Current authorized user
+		const user = req.user_id;
+		// Recipe id
+		const recipe_id = req.params.recipe_id;
+
+		const inputSchema = z.object({
+			ingredient_name: z.string(),
+			amount: z.number(),
+		});
+
+		const retrivialSchema = z.object({
+			id: z.number(),
+			name: z.string(),
+			amount: z.number(),
+		});
+
+
+		const parsed = inputSchema.safeParse(req.body);
+
+		if (parsed.error) {
+			// parse zod errors into user friendly format
+			const errors_messages = formatZodErrors(parsed.error.issues);
+			res.status(400).json(errors_messages);
+			return;
+		}
+
+		const recipeRetrivialQuery = `
+			SELECT * FROM Recipes
+			WHERE id = ? AND user_id = ?
+		`;
+		const ingredientsRetrivialQuery = `
+			SELECT Ing.Id, Ing.name, Ing.amount FROM Ingredients_to_recipes as bridge 
+			JOIN Ingredients as Ing ON bridge.ingredient_id = Ing.id
+			WHERE bridge.recipe_id  = ?
+		`;
+
+		const ingredientInsertionQuery = `
+			INSERT INTO Ingredients(name,amount)
+			VALUES (?,?);
+		`;
+		const bridgeInsertionQuery = `
+			INSERT INTO Ingredients_to_recipes
+			VALUES (?,?);
+		`;
+		db.serialize(() => {
+			// Get recipe
+			db.get(recipeRetrivialQuery, [recipe_id, user], (err, row) => {
+				if (err) {
+					// todo: maybe find another way to log errors
+					console.log(err);
+					res.status(500).send();
+				}
+				// No recipes found
+				if (!row) {
+					res.status(404).send(
+						"The recipe you wish to add ingredients to either doesn't exists or doesn't belong to the user"
+					);
+				}
+				// Recipe returned
+				else {
+					db.all(
+						ingredientsRetrivialQuery,
+						recipe_id,
+						(err, rows) => {
+							if (err) {
+								console.log(err);
 								res.status(500).send();
 								return;
 							}
-							// If the ingredient is present update it's amount
-	 						if(parsedQuery.data?.ingredient_name === parsed.data.ingredient_name){
-								// If the amount is 0 remove the ingredient 
-								// todo: figure out cascading or remove bridge here too
-								if(!parsed.data.amount)
-									db.run(ingredientDeletionQuery,parsedQuery.data.id);
-								// Alternatively update the data with appropreate ammount
-								else
-									db.run(ingredientUpdateQuery,parsed.data.amount,parsedQuery.data.id);
-								break;
+							console.log("rows", rows);
+							// flag to check if update was successful or insertion is needed
+							let flag = false;
+							rows.forEach((row) => {
+								// Parsed results for type safety
+								console.log("row", row);
+								const parsedQuery =
+									retrivialSchema.safeParse(row);
+								if (!parsedQuery.success) {
+									console.log(err);
+									res.status(500).send();
+									return;
+								}
+								// If the ingredient is present update it's amount
+								if (
+									parsedQuery.data?.name ===
+									parsed.data.ingredient_name
+								) {
+									flag = true
+								}
 							}
+						);
+						if(flag){
+							res.status(208).send("ingredient already exists ")
+							return;
+
 						}
-						// If there is not ingredient like the one inputed by the user we can add to the database
-						db.run(ingredientInsertionQuery,[parsed.data.ingredient_name,parsed.data.amount])
-					}else{
-						// Insert new ingredient and add to the bridging table 
-						db.run(ingredientInsertionQuery,[parsed.data.ingredient_name,parsed.data.amount],function(err) {
-							if(err){
+					db.run(
+						ingredientInsertionQuery,
+						[parsed.data.ingredient_name, parsed.data.amount],
+						function (err) {
+							if (err) {
 								console.log(err);
 								res.status(500).send();
 							}
-							db.run(bridgeInsertionQuery,[this.lastID,recipe_id])
-						})
-
-					}
-				});
-			}
+							db.run(bridgeInsertionQuery, [
+								this.lastID,
+								recipe_id,
+							]);
+						res.status(200).send('new ingredient created')
+						}
+					);
+						}
+					);
+				}
+			});
 		});
 	});
 }

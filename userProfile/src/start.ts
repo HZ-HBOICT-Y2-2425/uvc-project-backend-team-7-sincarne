@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 // auth router attaches /login, /logout, and /callback routes to the baseURL
 app.use(auth(config));
 
-app.use("/user", requiresAuth(), router)
+app.use("/user", requiresAuth(),authUser, router)
 
 
 app.set("port", 3011);

@@ -17,7 +17,6 @@ export async function searchFoodsOptionsByName(req: Request, res: Response) {
 			res.status(500).send();
 		}
 	});
-
 	// Igredient to search
 	const ingredient = req.params.ingredient;
 	// Split ingredient base on spaces removes empty strings and adds sql syntax

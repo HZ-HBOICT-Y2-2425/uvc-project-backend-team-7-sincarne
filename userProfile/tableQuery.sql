@@ -1,3 +1,5 @@
+PRAGMA foreign_keys = ON;
+
 CREATE TABLE Users (
 	id INTEGER NOT NULL PRIMARY KEY,
 	auth0Indetyfier TEXT NOT NULL,
@@ -46,8 +48,8 @@ CREATE TABLE Ingredients_to_recipes(
 	ingredient_id INTEGER NOT NULL,
 	recipe_id INTEGER NOT NULL,
 	PRIMARY KEY (ingredient_id,recipe_id),
-	FOREIGN KEY (ingredient_id) REFERENCES Ingredients(id),
-	FOREIGN KEY (recipe_id) REFERENCES Recipes(id)
+	FOREIGN KEY (ingredient_id) REFERENCES Ingredients(id) ON DELETE CASCADE,
+	FOREIGN KEY (recipe_id) REFERENCES Recipes(id) ON DELETE CASCADE
 );
 
 
@@ -68,7 +70,7 @@ CREATE TABLE Recipes_to_tags(
 	tag_id INTEGER NOT NULL,
 	PRIMARY KEY (recipe_id,tag_id),
 	FOREIGN KEY (recipe_id) REFERENCES Recipes(id),
-	FOREIGN KEY (tag_id) REFERENCES Tags(id)
+	FOREIGN KEY (tag_id) REFERENCES Tags(id) ON DELETE CASCADE
 );
 
 CREATE TABLE Diatery_diary(
