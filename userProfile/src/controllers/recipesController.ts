@@ -11,7 +11,6 @@ import {
 // Open sqlite in verbose for better error tracing if the app is in debug mode
 const sqlite = process.env.DEBUG === "TRUE" ? sqlite3.verbose() : sqlite3;
 
-
 // todo: sending or evne returning after status(500) doesn't stop execution for some reason
 // Retrieve all recipes for a user
 export async function getRecipes(req: Request, res: Response) {

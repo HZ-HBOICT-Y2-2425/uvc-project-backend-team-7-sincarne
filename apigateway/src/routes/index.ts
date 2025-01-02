@@ -11,12 +11,7 @@ const router = express.Router();
 const userProxy = createProxyMiddleware({
 	target: "http://localhost:3011", //will change when we host to heroku
 	changeOrigin: true,
-	pathRewrite: {
-		"^user/login": "/login", // Forward /user/login to /login
-		"^/user/logout": "/logout", // Forward /user/logout to /logout
-		"^/user/profile": "/profile", // Forward /user/profile to /profile
-	},
-	onProxyReq: fixRequestBody
+	onProxyReq: fixRequestBody   //this erases the user/login route for some reason
 });
 
 const nutriProxy = createProxyMiddleware({
@@ -25,8 +20,11 @@ const nutriProxy = createProxyMiddleware({
 	onProxyReq: fixRequestBody
 });
 
+router.use("/nutri", cors(), nutriProxy);
+router.use("/user", cors(), userProxy);
 
 //put all proxy mappings that require authentication below this
+//EVERYTHING ELSE ABOVE IT!
 router.use(
 	auth({
 		authRequired: false,
@@ -40,8 +38,5 @@ router.use(
 		},
 	})
 );
-
-router.use("/nutri", cors(), nutriProxy);
-router.use("/user", requiresAuth(), cors(), userProxy);
 
 export default router;
