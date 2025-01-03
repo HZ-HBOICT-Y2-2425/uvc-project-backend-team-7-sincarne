@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import sqlite3 from "sqlite3";
 import dotenv from "dotenv";
-import z, { date, object } from "zod";
+import z from "zod";
 import db from '../../db'
 
 import {
@@ -225,7 +225,6 @@ export async function deleteRecipe(req: Request, res: Response) {
 
 	db.serialize(() => {
 		db.run(deleteQuery, [receipe_id, user_id], (err) => {
-			//todo: validate if user is authorized to delete this recipe
 			if (err) {
 				console.log(err);
 				res.status(500).send();
@@ -246,8 +245,6 @@ export async function updateIngredient(req: Request, res: Response) {
 		ingredient_name: z.string(),
 		amount: z.number(),
 	});
-
-	
 
 	const retrivialSchema = z.object({
 		id: z.number(),

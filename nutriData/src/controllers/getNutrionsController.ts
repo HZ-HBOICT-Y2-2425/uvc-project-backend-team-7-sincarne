@@ -25,6 +25,7 @@ async function getNutritions(
 	ingredient_code: null | string = null,
 	ingredient_description: null | string = null
 ) {
+
 	// Connect to the database
 	const db = new sqlite.Database("./db.sqlite3", (err) => {
 		if (err) {
@@ -33,6 +34,7 @@ async function getNutritions(
 			res.status(500).send();
 		}
 	});
+
 	// technically speaking currently impossible so in future it could be either 500 or 400 error depending on the cause 
 	if(ingredient_code === null && ingredient_description === null){
 		// for now 500 seems more accurate

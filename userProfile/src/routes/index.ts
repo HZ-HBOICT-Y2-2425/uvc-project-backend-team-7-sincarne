@@ -9,7 +9,7 @@ import {
 	updateIngredient,
 	addIngredient
 } from "../controllers/recipesController";
-import { updateDiary } from "../controllers/diateryController";
+import { updateDiary , getDiary} from "../controllers/diateryController";
 import { authUser } from "../middleware/authUser";
 
 const router = express.Router();
@@ -18,8 +18,12 @@ router.get("/", (req, res, next) => {
 	res.json("hi");
 });
 
-
+// Diary routes
 router.post('/updateDiary',cors(),updateDiary);
+router.get('/getDiary/:date',cors(),getDiary);
+
+
+// Recipes routes
 router.get("/getRecipes",cors(), getRecipes);
 router.get("/getRecipe/:recipe_id", cors(), getRecipe);
 router.post("/createRecipe", cors(), createRecipe);

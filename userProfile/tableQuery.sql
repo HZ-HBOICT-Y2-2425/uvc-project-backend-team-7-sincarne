@@ -1,4 +1,3 @@
-PRAGMA foreign_keys = ON;
 
 CREATE TABLE Users (
 	id INTEGER NOT NULL PRIMARY KEY,
@@ -11,7 +10,7 @@ CREATE TABLE Users (
 
 CREATE TABLE Friend_groups(
 	id INTEGER NOT NULL PRIMARY KEY,
-	name TEXT 
+	name TEXT
 );
 
 CREATE TABLE Friend_groups_to_users(
