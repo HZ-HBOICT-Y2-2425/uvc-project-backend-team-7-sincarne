@@ -1,19 +1,20 @@
+# Use Node.js base image
 FROM node:22.11.0
 
 # Set the working directory
-WORKDIR /usr/src/apigateway
+WORKDIR /usr/src/userProfile
 
 # Copy all necessary files
 COPY package*.json tsconfig.json .env ./
 
 # Install dependencies
-RUN npm install
+RUN npm install 
 
 # Copy the entire application source code
 COPY . .
 
 # Expose the port
-EXPOSE 3000
+EXPOSE 3011
 
-# Start the application
+# Start the microservice
 CMD ["npm", "run", "dev"]

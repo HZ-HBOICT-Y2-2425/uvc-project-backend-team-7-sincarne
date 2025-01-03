@@ -1,0 +1,27 @@
+{
+  "name": "nutridata",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "concurrently -n \"TypeScript,Node\" -c \"blue,green\" \"npx tsc -w\" \"npx nodemon dist/start.js\"",
+    "start": "node dist/start.js",
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.2",
+    "express": "^4.17.1",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/sqlite3": "^3.1.11",
+    "concurrently": "^9.1.0",
+    "nodemon": "^3.0.1",
+    "typescript": "^5.6.3",
+    "zod": "^3.23.8"
+  }
+}
