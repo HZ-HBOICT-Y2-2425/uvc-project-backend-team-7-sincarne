@@ -140,3 +140,9 @@ CREATE TABLE Identified_meat_ingredients(
     is_meat TEXT
 );
 
+CREATE TABLE CO2emission(
+	ingredient_code NOT NULL PRIMARY KEY,
+	amount REAL
+);
+
+
