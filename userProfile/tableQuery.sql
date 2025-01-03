@@ -83,5 +83,18 @@ CREATE TABLE Diatery_diary(
 	FOREIGN KEY (user_id) REFERENCES Users(id)
 );
 
+CREATE TABLE UserAllergies (
+    user_id INTEGER NOT NULL,
+    allergy TEXT NOT NULL,
+    PRIMARY KEY (user_id, allergy),
+    FOREIGN KEY (user_id) REFERENCES Users(id)
+);
+
+CREATE TABLE UserPreferences (
+    user_id INTEGER NOT NULL,
+    preference TEXT NOT NULL,
+    PRIMARY KEY (user_id, preference),
+    FOREIGN KEY (user_id) REFERENCES Users(id)
+);
 
 
