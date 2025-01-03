@@ -9,6 +9,7 @@ import {
 } from "../controllers/recipesController";
 import { updateDiary } from "../controllers/diateryController";
 import { authUser } from "../middleware/authUser";
+import { getLeaderboard } from "../controllers/leaderboardController";
 
 const router = express.Router();
 
@@ -23,5 +24,6 @@ router.get("/getRecipe/:recipe_id", cors(), getRecipe);
 router.post("/createRecipe", [cors(),authUser], createRecipe);
 router.patch("/updateRecipe/:recipe_id", cors(), updateRecipe);
 router.delete("/deleteRecipe/:recipe_id", cors(), deleteRecipe);
+router.get("/leaderboard", cors(), getLeaderboard);
 
 export default router;
