@@ -3,6 +3,12 @@ import sqlite3 from "sqlite3";
 
 const sqlite = process.env.DEBUG === "TRUE" ? sqlite3.verbose() : sqlite3;
 
+interface LeaderboardRow {
+    name: string;
+    co2Saved: number;
+    avatar: string;
+}
+
 export async function getLeaderboard(req: Request, res: Response) {
     const db = new sqlite.Database("./dev.db", (err: any) => {
         if (err) {
@@ -18,7 +24,7 @@ export async function getLeaderboard(req: Request, res: Response) {
         LIMIT 100;
     `;
 
-    db.all(query, [], (err, rows) => {
+    db.all(query, [], (err, rows: LeaderboardRow[]) => {
         if (err) {
             console.error("Query error:", err);
             res.status(500).json({ error: "Failed to fetch leaderboard data." });
