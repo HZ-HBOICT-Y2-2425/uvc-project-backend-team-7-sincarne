@@ -2,10 +2,16 @@ import { Request, Response } from "express";
 import sqlite3 from "sqlite3";
 import db from "../../db";
 
-// SQLite configuration
 const sqlite = process.env.DEBUG === "TRUE" ? sqlite3.verbose() : sqlite3;
 
-// Fetch CO2 saved for the logged-in user
+interface UserCO2Data {
+    CO2Prevented: number;
+}
+
+interface TotalCO2Data {
+    totalCO2: number | null;
+}
+
 export const getUserCO2 = (req: Request, res: Response) => {
     const userId = req.user_id;
 
@@ -15,7 +21,7 @@ export const getUserCO2 = (req: Request, res: Response) => {
         WHERE id = ?
     `;
 
-    db.get(query, [userId], (err, row) => {
+    db.get(query, [userId], (err, row: UserCO2Data | undefined) => {
         if (err) {
             console.error("Error retrieving user CO2 data:", err);
             res.status(500).json({ error: "Internal server error" });
@@ -31,20 +37,19 @@ export const getUserCO2 = (req: Request, res: Response) => {
     });
 };
 
-// Fetch total CO2 saved by all users
 export const getTotalCO2 = (_req: Request, res: Response) => {
     const query = `
         SELECT SUM(CO2Prevented) as totalCO2
         FROM Users
     `;
 
-    db.get(query, [], (err, row) => {
+    db.get(query, [], (err, row: TotalCO2Data | undefined) => {
         if (err) {
             console.error("Error retrieving total CO2 data:", err);
             res.status(500).json({ error: "Internal server error" });
             return;
         }
 
-        res.status(200).json({ totalCO2: row.totalCO2 || 0 });
+        res.status(200).json({ totalCO2: row?.totalCO2 || 0 });
     });
 };
