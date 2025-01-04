@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
 import sqlite3 from "sqlite3";
 import dotenv from "dotenv";
-import z, { date } from "zod";
+import z from "zod";
+import db from '../../db'
+
 import {
 	createIntegerSchema,
 	formatZodErrors,
@@ -11,58 +13,49 @@ import {
 // Open sqlite in verbose for better error tracing if the app is in debug mode
 const sqlite = process.env.DEBUG === "TRUE" ? sqlite3.verbose() : sqlite3;
 
-
 // todo: sending or evne returning after status(500) doesn't stop execution for some reason
 // Retrieve all recipes for a user
 export async function getRecipes(req: Request, res: Response) {
-
 	// Connect to the database
-	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
-		if (err) {
-			console.log("opening error: ", err);
-			// If databased failed to open the Api is unoperable
-			res.status(500).send();
-		}
-	});
 
 	const user_id = req.user_id;
 
 	const getQuery = `SELECT * FROM Recipes
-	WHERE user_id = ?`;
+	WHERE user_id = ? `;
 
 	// todo: add pagination
 	db.all(getQuery, [user_id], (err: any, rows: string | any[]) => {
 		if (err) {
 			console.log(err);
 			res.status(500).send();
+			return;
 		}
 		if (rows.length === 0) {
 			res.status(200).json([]);
-		}else{
+		} else {
 			res.status(200).json(rows);
 		}
 	});
-	db.close();
 }
 
 // Retrieve a single recipe
 export async function getRecipe(req: Request, res: Response) {
 	// Connect to the database
-	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
-		if (err) {
-			console.log("opening error: ", err);
-			// If databased failed to open the Api is unoperable
-			res.status(500).send();
-		}
-	});
 
-	const user_id = parseInt(req.user_id);
+	const user_id = req.user_id;
 
 	// Retrieve the recipe_id from the request
 	const receipe_id = req.params.recipe_id;
 
 	const getQuery = `SELECT * FROM Recipes
-	WHERE id = ? AND user_id = ?`;
+	WHERE id = ? AND user_id = ?
+	`;
+
+	const ingredientsQuery = `
+		SELECT ing.name, ing.amount from Ingredients_to_recipes as Itr 
+		JOIN Ingredients as ing on Itr.ingredient_id = ing.id
+		WHERE Itr.recipe_id = ?
+	`;
 
 	db.get(getQuery, [receipe_id, user_id], (err: any, row: any) => {
 		if (err) {
@@ -72,29 +65,26 @@ export async function getRecipe(req: Request, res: Response) {
 		if (!row) {
 			res.status(404).send("Recipe not found");
 		}
-		res.status(200).json(row);
+		db.all(ingredientsQuery, [receipe_id], (err, ingredients) => {
+			if (err) {
+				console.log(err);
+				res.status(500).send();
+			}
+			row.ingredients = ingredients;
+			res.status(200).json(row);
+		});
 	});
-	db.close();
 }
-
-
 
 export async function createRecipe(req: Request, res: Response) {
 	// Connect to the database
-	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
-		if (err) {
-			console.log("opening error: ", err);
-			// If databased failed to open the Api is unoperable
-			res.status(500).send();
-		}
-	});
 
 	console.log("req ", req.user_id);
 
 	const user_id = parseInt(req.user_id);
 
-	console.log("req parsed ",user_id);
-	
+	console.log("req parsed ", user_id);
+
 	// Type checking received data provide null for empty values
 	const recipeSchema = z.object({
 		name: z.string(),
@@ -118,38 +108,42 @@ export async function createRecipe(req: Request, res: Response) {
 	`;
 
 	db.serialize(() => {
-		db.run(insertQuery, [user_id,parsed.data.name,parsed.data.image_path,0,0,0,0]);
+		db.run(insertQuery, [
+			user_id,
+			parsed.data.name,
+			parsed.data.image_path,
+			0,
+			0,
+			0,
+			0,
+		]);
 	});
 
 	res.status(200).send();
-	db.close();
 }
-// todo : provide option to update image_path and nutrition values
+// todo : provide option to update image_path 
 export function updateRecipe(req: Request, res: Response) {
 	// Connect to the database
-	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
-		if (err) {
-			console.log("opening error: ", err);
-			// If databased failed to open the Api is unoperable
-			res.status(500).send();
-		}
-	});
 	// Retrieve the recipe_id from the request
 	const receipe_id = req.params.recipe_id;
 
-
-	
 	const user_id = parseInt(req.user_id);
-	// Type checking received data 
+	// Type checking received data
 	const updateSchema = z.object({
 		name: z.string().optional(),
-		to_delete: createArraySchema().optional(),
-		to_add: createArraySchema().optional(),
+		total_calories: createIntegerSchema().nullable().default(null),
+		total_protein: createIntegerSchema().nullable().default(null),
+		total_carbs: createIntegerSchema().nullable().default(null),
+		total_fats: createIntegerSchema().nullable().default(null),
 	});
 
-	// Type checking forqueried data
-	const ingriedentsSchema = z.object({
-		ingredients: createArraySchema().nullable(),
+	// Schema for the data retrieved from the database
+	const retrieveSchema = z.object({
+		name: z.string(),
+		total_calories: z.number().nullable(),
+		total_protein: z.number().nullable(),
+		total_carbs: z.number().nullable(),
+		total_fats: z.number().nullable(),
 	});
 
 	const parsed = updateSchema.safeParse(req.body);
@@ -161,22 +155,16 @@ export function updateRecipe(req: Request, res: Response) {
 		return;
 	}
 
-
-
-
 	// SQL queries to update the recipe
 
-	const nameUpdateQuery = `
+	const UpdateQuery = `
 		UPDATE Recipes
-		SET name = ?
+		SET name = ?,
+		total_calorie = ?,
+		total_protein = ?,
+		total_carbs = ?,
+		total_fats = ?
 		WHERE id = ? and user_id = ?
-	`;
-
-	const ingredientsUpdateQuery = `
-		UPDATE Recipes
-		SET ingredients = ?
-		WHERE id = ? and user_id = ?
-
 	`;
 
 	const checkQuery = `
@@ -185,120 +173,45 @@ export function updateRecipe(req: Request, res: Response) {
 
 	`;
 
-	const ingredientsQuery = `
-		SELECT ingredients FROM recipes
-		WHERE id = ? and user_id = ?
-
-	`;
-
 	db.serialize(() => {
 		// validate if recipe_id exists
-		db.get(checkQuery, [receipe_id,user_id], (err, row) => {
+		db.get(checkQuery, [receipe_id, user_id], (err, row) => {
 			if (err) {
 				console.log(err);
 				res.status(500).send();
 			}
 			if (!row) {
 				res.status(404).send("Recipe not found or invalid id");
-			}
-			// todo: validate if user is authorized to update this recipe
-		});
-
-		db.parallelize(() => {
-			if (parsed.data.name) {
-				db.run(
-					nameUpdateQuery,
-					[parsed.data.name, receipe_id,user_id],
-					(err) => {
-						if (err) {
-							console.log(err);
-							res.status(500).send();
-						}
-					}
-				);
-			}
-			db.serialize(() => {
-				console.log(parsed.data);
-				if (
-					parsed.data.to_delete !== undefined ||
-					parsed.data.to_add !== undefined
-				) {
-					console.log("updating ingredients");
-					// retrieve the current ingredients
-					db.get(ingredientsQuery, [receipe_id,user_id], (err, row) => {
-						if (err) {
-							console.log(err);
-							res.status(500).send();
-						}
-						const parsedQuery = ingriedentsSchema.safeParse(row);
-						if (!parsedQuery.success) {
-							//todo: investigate why this is happening
-							//doesn't actually send the error message
-							console.log('error: ',parsedQuery.error);
-							res.status(500).send();
-							return;
-						}
-
-						let currentIngredients =
-							parsedQuery.data.ingredients === null
-								? []
-								: parsedQuery.data.ingredients;
-						// remove the ingredients that are marked to be deleted
-						if (parsed.data.to_delete !== undefined) {
-							parsed.data.to_delete.forEach((ingredient: any) => {
-								const index =
-									currentIngredients.indexOf(ingredient);
-								if (index > -1) {
-									currentIngredients.splice(index, 1);
-								}
-							});
-							// add the ingredients that are marked to be added
-						}
-						if (parsed.data.to_add !== undefined) {
-							//check if the ingredient is already in the list
-							//if not add it after surruonding it with ""
-							parsed.data.to_add.forEach((ingredient: any) => {
-								if (!currentIngredients.includes(ingredient)) {
-									currentIngredients.push(ingredient);
-								}
-							});
-						}
-
-						currentIngredients = currentIngredients.map((ingredient: any) => {
-							return `"${ingredient}"`;
-						});
-						// update the ingredients
-						db.run(
-							ingredientsUpdateQuery,
-							[
-								"[" + currentIngredients.join(",") + "]",
-								receipe_id,
-								user_id,
-							],
-							(err: any) => {
-								if (err) {
-									console.log(err);
-									res.status(500).send();
-								}
-							}
-						);
-					});
+			} else {
+				const parsedQuery = retrieveSchema.safeParse(row);
+				if (!parsedQuery.success) {
+					console.log(parsedQuery.error);
+					return;
 				}
-			});
+
+				const updatedData = {
+					name: parsed.data.name ?? parsedQuery.data.name,
+					total_calories:
+						(parsed.data.total_calories ?? 0) +
+						(parsedQuery.data.total_calories ?? 0),
+					total_protein:
+						(parsed.data.total_protein ?? 0) +
+						(parsedQuery.data.total_protein ?? 0),
+					total_carbs:
+						(parsed.data.total_carbs ?? 0) +
+						(parsedQuery.data.total_carbs ?? 0),
+					total_fats:
+						(parsed.data.total_fats ?? 0) +
+						(parsedQuery.data.total_fats ?? 0),
+				};
+				db.run(UpdateQuery, [Object.values(updatedData)]);
+			}
 		});
 	});
 
 	res.status(200).send();
 }
-export async function deleteRecipe(req : Request, res: Response){
-	// Connect to the database
-	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
-		if (err) {
-			console.log("opening error: ", err);
-			// If databased failed to open the Api is unoperable
-			res.status(500).send();
-		}
-	});
+export async function deleteRecipe(req: Request, res: Response) {
 
 	// Retrieve the recipe_id from the request
 	const receipe_id = req.params.recipe_id;
@@ -310,10 +223,8 @@ export async function deleteRecipe(req : Request, res: Response){
 		WHERE id = ? AND user_id = ?
 	`;
 
-
 	db.serialize(() => {
 		db.run(deleteQuery, [receipe_id, user_id], (err) => {
-		//todo: validate if user is authorized to delete this recipe
 			if (err) {
 				console.log(err);
 				res.status(500).send();
@@ -321,4 +232,246 @@ export async function deleteRecipe(req : Request, res: Response){
 		});
 	});
 	return res.status(200).send();
+}
+
+// user/recipes/:recipe_id/updateIngredient
+export async function updateIngredient(req: Request, res: Response) {
+	// Current authorized user
+	const user = req.user_id;
+	// Recipe id
+	const recipe_id = req.params.recipe_id;
+
+	const inputSchema = z.object({
+		ingredient_name: z.string(),
+		amount: z.number(),
+	});
+
+	const retrivialSchema = z.object({
+		id: z.number(),
+		name: z.string(),
+		amount: z.number(),
+	});
+
+	const parsed = inputSchema.safeParse(req.body);
+
+	if (parsed.error) {
+		// parse zod errors into user friendly format
+		const errors_messages = formatZodErrors(parsed.error.issues);
+		res.status(400).json(errors_messages);
+		return;
+	}
+
+	const recipeRetrivialQuery = `
+		SELECT * FROM Recipes
+		WHERE id = ? AND user_id = ?
+	`;
+
+	const ingredientsRetrivialQuery = `
+		SELECT Ing.Id, Ing.name, Ing.amount FROM Ingredients_to_recipes as bridge 
+		JOIN Ingredients as Ing ON bridge.ingredient_id = Ing.id
+		WHERE bridge.recipe_id  = ?
+	`;
+	const ingredientDeletionQuery = `
+		DELETE FROM Ingredients 
+		WHERE id = ?
+	`;
+	const ingredientUpdateQuery = `
+		UPDATE Ingredients SET amount = ? 
+		WHERE id = ?
+	`;
+
+	db.serialize(() => {
+		// Get recipe
+		db.get(recipeRetrivialQuery, [recipe_id, user], (err, row) => {
+			if (err) {
+				// todo: maybe find another way to log errors
+				console.log(err);
+				res.status(500).send();
+			}
+			// No recipes found
+			if (!row) {
+				res.status(404).send(
+					"The recipe you wish to add ingredients to either doesn't exists or doesn't belong to the user"
+				);
+			}
+			// Recipe returned
+			else {
+				res.status(200);
+				// Retrive all the ingredients attached to the recipe
+				db.all(ingredientsRetrivialQuery, recipe_id, (err, rows) => {
+					if (err) {
+						console.log(err);
+						res.status(500).send();
+						return;
+					}
+					// flag to check if update was successful or insertion is needed
+					let flag = false;
+					rows.forEach((row) => {
+						// Parsed results for type safety
+						const parsedQuery = retrivialSchema.safeParse(row);
+						if (!parsedQuery.success) {
+							console.log(err);
+							res.status(500).send();
+							return;
+						}
+						// If the ingredient is present update it's amount
+						if (
+							parsedQuery.data?.name ===
+							parsed.data.ingredient_name
+						) {
+							// If the amount is 0 remove the ingredient
+							// todo: figure out cascading or remove bridge here too
+							if (!parsed.data.amount)
+								db.run(
+									ingredientDeletionQuery,
+									parsedQuery.data.id
+								);
+							// Alternatively update the data with appropreate ammount
+							else
+								db.run(
+									ingredientUpdateQuery,
+									parsed.data.amount,
+									parsedQuery.data.id
+								);
+							flag = true;
+						}
+
+					})
+					if(!flag){
+						res.status(404).send("ingrediet isn't present in the recipe")
+					}
+					res.send();
+
+				});
+			}
+		});
+	});
+}
+
+
+export async function addIngredient(req: Request, res: Response) {
+	// Connect to the database
+	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
+		if (err) {
+			console.log("opening error: ", err);
+			// If databased failed to open the Api is unoperable
+			res.status(500).send();
+		}
+		// Current authorized user
+		const user = req.user_id;
+		// Recipe id
+		const recipe_id = req.params.recipe_id;
+
+		const inputSchema = z.object({
+			ingredient_name: z.string(),
+			amount: z.number(),
+		});
+
+		const retrivialSchema = z.object({
+			id: z.number(),
+			name: z.string(),
+			amount: z.number(),
+		});
+
+
+		const parsed = inputSchema.safeParse(req.body);
+
+		if (parsed.error) {
+			// parse zod errors into user friendly format
+			const errors_messages = formatZodErrors(parsed.error.issues);
+			res.status(400).json(errors_messages);
+			return;
+		}
+
+		const recipeRetrivialQuery = `
+			SELECT * FROM Recipes
+			WHERE id = ? AND user_id = ?
+		`;
+		const ingredientsRetrivialQuery = `
+			SELECT Ing.Id, Ing.name, Ing.amount FROM Ingredients_to_recipes as bridge 
+			JOIN Ingredients as Ing ON bridge.ingredient_id = Ing.id
+			WHERE bridge.recipe_id  = ?
+		`;
+
+		const ingredientInsertionQuery = `
+			INSERT INTO Ingredients(name,amount)
+			VALUES (?,?);
+		`;
+		const bridgeInsertionQuery = `
+			INSERT INTO Ingredients_to_recipes
+			VALUES (?,?);
+		`;
+		db.serialize(() => {
+			// Get recipe
+			db.get(recipeRetrivialQuery, [recipe_id, user], (err, row) => {
+				if (err) {
+					// todo: maybe find another way to log errors
+					console.log(err);
+					res.status(500).send();
+				}
+				// No recipes found
+				if (!row) {
+					res.status(404).send(
+						"The recipe you wish to add ingredients to either doesn't exists or doesn't belong to the user"
+					);
+				}
+				// Recipe returned
+				else {
+					db.all(
+						ingredientsRetrivialQuery,
+						recipe_id,
+						(err, rows) => {
+							if (err) {
+								console.log(err);
+								res.status(500).send();
+								return;
+							}
+							console.log("rows", rows);
+							// flag to check if update was successful or insertion is needed
+							let flag = false;
+							rows.forEach((row) => {
+								// Parsed results for type safety
+								console.log("row", row);
+								const parsedQuery =
+									retrivialSchema.safeParse(row);
+								if (!parsedQuery.success) {
+									console.log(err);
+									res.status(500).send();
+									return;
+								}
+								// If the ingredient is present update it's amount
+								if (
+									parsedQuery.data?.name ===
+									parsed.data.ingredient_name
+								) {
+									flag = true
+								}
+							}
+						);
+						if(flag){
+							res.status(208).send("ingredient already exists ")
+							return;
+
+						}
+					db.run(
+						ingredientInsertionQuery,
+						[parsed.data.ingredient_name, parsed.data.amount],
+						function (err) {
+							if (err) {
+								console.log(err);
+								res.status(500).send();
+							}
+							db.run(bridgeInsertionQuery, [
+								this.lastID,
+								recipe_id,
+							]);
+						res.status(200).send('new ingredient created')
+						}
+					);
+						}
+					);
+				}
+			});
+		});
+	});
 }

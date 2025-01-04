@@ -4,6 +4,7 @@ import { z } from "zod";
 export function createIntegerSchema () {
 	return z.string().transform((val: string, ctx: { addIssue: (arg0: { code: any; message: string; }) => void; }) => {
 		const parsed = parseFloat(val); // Convert string to integer
+		console.log(val)
 		if (isNaN(parsed)) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,

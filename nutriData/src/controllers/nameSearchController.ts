@@ -5,7 +5,19 @@ import { z } from "zod";
 
 dotenv.config({ path: ".env" });
 
+export async function searchVegeFoodsOptionsByName(req: Request, res:Response) {
+	searchFoodsOptions(req,res,true);
+}
+
+export async function searchCarnivorousFoodOptionsByName(req: Request, res: Response) {
+	searchFoodsOptions(req,res,false);
+	
+}
 export async function searchFoodsOptionsByName(req: Request, res: Response) {
+	searchFoodsOptions(req,res);
+}
+
+export async function searchFoodsOptions(req: Request, res: Response, vegeterian: boolean | null = null) {
 
 	// Open sqlite in verbose for better error tracing if the app is in debug mode
 	const sqlite = process.env.DEBUG === "TRUE" ? sqlite3.verbose() : sqlite3;
@@ -17,7 +29,6 @@ export async function searchFoodsOptionsByName(req: Request, res: Response) {
 			res.status(500).send();
 		}
 	});
-
 	// Igredient to search
 	const ingredient = req.params.ingredient;
 	// Split ingredient base on spaces removes empty strings and adds sql syntax
@@ -28,14 +39,25 @@ export async function searchFoodsOptionsByName(req: Request, res: Response) {
 	// Build like clause while escaping special characters (matches all words in any order
 	const likeClause = words.map(() => `ingredient_description LIKE ?`).join(" AND ");
 
-	// Sql Query to be executed
+	// Sql Query to be executed by default
 	// We are ordering by length so the primary ingredients come first
-	const searchQuery = `
+	let searchQuery = `
 			SELECT DISTINCT ingredient_code, ingredient_description FROM Ingredient_nutrient_value
 			WHERE ${likeClause}
 			ORDER BY length(ingredient_description)
 			LIMIT ?
 		`;
+
+	if(vegeterian != null){
+		searchQuery = `
+				SELECT DISTINCT ing.ingredient_code, ingredient_description FROM Ingredient_nutrient_value as ing
+				LEFT JOIN Identified_meat_ingredients as meat on ing.ingredient_code = meat.ingredient_code
+				WHERE  meat.is_meat = '${(vegeterian) ? "False" : "True"}' AND ${likeClause} 
+				ORDER BY length(ingredient_description) 
+				LIMIT ?
+			`;
+	}
+
 
 	// Zod Schema for ensuring type safety
 	const searchSchema = z.object({

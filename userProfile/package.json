@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "dev-debug": "set DEBUG=express:* & concurrently -n \"TypeScript,Node\" -c \"blue,green\" \"npx tsc -w\" \"npx nodemon dist/start.js\"",
-    "dev": "concurrently -n \"TypeScript,Node\" -c \"blue,green\" \"npx tsc -w\" \"npx nodemon dist/start.js\"",
+    "dev-debug": "set DEBUG=express:* & concurrently -n \"TypeScript,Node\" -c \"blue,green\" \"npx tsc -w\" \"npx nodemon dist/src/start.js\"",
+    "dev": "concurrently -n \"TypeScript,Node\" -c \"blue,green\" \"npx tsc -w\" \"npx nodemon dist/src/start.js\"",
     "test": "jest --config=jest.config.js",
     "start": "node dist/start.js",
     "build": "tsc"
