@@ -15,6 +15,9 @@ const userProxy = createProxyMiddleware({
 		"^user/login": "/login", // Forward /user/login to /login
 		"^/user/logout": "/logout", // Forward /user/logout to /logout
 		"^/user/profile": "/profile", // Forward /user/profile to /profile
+		"^/user/api/leaderboard": "/leaderboard", 
+    	"^/user/co2personal": "/co2personal",  
+    	"^/user/co2global": "/co2global"
 	},
 	onProxyReq: fixRequestBody
 });
