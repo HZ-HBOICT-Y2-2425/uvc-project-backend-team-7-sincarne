@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import sqlite3 from "sqlite3";
 import dotenv from "dotenv";
-import z from "zod";
+import z, { string } from "zod";
 import { createIntegerSchema, formatZodErrors } from "../helpers/zodHelpers";
 
 const sqlite = process.env.DEBUG === "TRUE" ? sqlite3.verbose() : sqlite3;
@@ -16,10 +16,11 @@ export async function updateDiary(req: Request, res: Response) {
 		}
 	});
 
-	const user_id = parseInt(req.params.user_id);
+	const user_id = req.user_id;
 
 	// Schema for the data received from the client
 	const updateSchema = z.object({
+		date: z.string().default(new Date().toDateString()),
 		total_calories: createIntegerSchema().nullable().default(null),
 		total_protein: createIntegerSchema().nullable().default(null),
 		total_carbs: createIntegerSchema().nullable().default(null),
@@ -33,8 +34,6 @@ export async function updateDiary(req: Request, res: Response) {
 		total_carbs: z.number().nullable(),
 		total_fats: z.number().nullable(),
 	});
-		
-
 
 	// Type checking received data provide null for empty values
 	const parsed = updateSchema.safeParse(req.body);
@@ -65,11 +64,8 @@ export async function updateDiary(req: Request, res: Response) {
 		WHERE user_id = ? AND date = ?
 	`;
 
-	// retrieve today's date in the format DD-MM-YYYY
-	const date = new Date().toLocaleDateString("en-GB");
-
 	db.serialize(() => {
-		db.get(retrieveQuery, [user_id, date], (err, row) => {
+		db.get(retrieveQuery, [user_id, parsed.data.date], (err, row) => {
 			if (err) {
 				console.log("retrieval error: ", err);
 				res.status(500).send();
@@ -104,7 +100,7 @@ export async function updateDiary(req: Request, res: Response) {
 				};
 				db.run(
 					updateQuery,
-					[...Object.values(updatedData), user_id, date],
+					[...Object.values(updatedData), user_id, parsed.data.date],
 					(err) => {
 						if (err) {
 							console.log("update error: ", err);
@@ -116,16 +112,15 @@ export async function updateDiary(req: Request, res: Response) {
 			} else {
 				// create a new entry in the database
 				updatedData = {
-				total_calories: parsed.data.total_calories ?? 0,
+					total_calories: parsed.data.total_calories ?? 0,
 					total_protein: parsed.data.total_protein ?? 0,
 					total_carbs: parsed.data.total_carbs ?? 0,
 					total_fats: parsed.data.total_fats ?? 0,
 				};
 				db.run(
 					insertQuery,
-					[user_id, ...Object.values(updatedData), date],
+					[user_id, ...Object.values(updatedData), parsed.data.date],
 					(err) => {
-
 						if (err) {
 							console.log("insert error: ", err);
 							res.status(500).send();
@@ -135,5 +130,46 @@ export async function updateDiary(req: Request, res: Response) {
 				);
 			}
 		});
+	});
+}
+
+export async function getDiary(req: Request, res: Response) {
+	// Connect to the database
+	const db = new sqlite.Database("./db.sqlite3", (err: any) => {
+		if (err) {
+			console.log("opening error: ", err);
+			// If databased failed to open the Api is unoperable
+			res.status(500).send();
+		}
+	});
+
+	const user_id = req.user_id;
+
+	const date = req.params.date;
+
+	const retrieveQuery = `
+		SELECT total_calories, total_protein, total_carbs, total_fats
+		FROM Diatery_diary
+		WHERE user_id = ? AND date = ?
+	`;
+
+
+	db.get(retrieveQuery, [user_id, date], (err, row) => {
+		if (err) {
+			console.log("retrieval error: ", err);
+			res.status(500).send();
+		}
+		// return data with the row is there
+		if (row) {
+			res.status(200).json(row)
+		// not having a object for a date shouldn't create an error either instead just return empty skeleton
+		}else{
+			res.status(200).json({
+				total_calories: 0,
+				total_protein: 0,
+				total_carbs: 0,
+				total_fats: 0,
+			});
+		}
 	});
 }
