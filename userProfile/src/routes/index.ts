@@ -34,7 +34,7 @@ router.patch("/updateRecipe/:recipe_id", cors(), updateRecipe);
 router.delete("/deleteRecipe/:recipe_id", cors(), deleteRecipe);
 
 // CO2-related routes
-router.get("/co2personal", [cors(), authUser], getUserCO2);
+router.get("/co2personal", cors(), getUserCO2);
 router.get("/co2global", cors(), getTotalCO2);
 
 //Leaderboard routes
