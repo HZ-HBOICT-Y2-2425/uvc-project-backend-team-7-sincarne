@@ -24,19 +24,6 @@ app.use(express.urlencoded({ extended: true }));
 // auth router attaches /login, /logout, and /callback routes to the baseURL
 app.use(auth(config));
 
-<<<<<<< HEAD
-
-app.use("/user", requiresAuth(), router),
-	//demonstrates how to access thr user data
-	app.get("/profile", requiresAuth(), (req, res) => {
-		res.send(JSON.stringify(req.oidc.user));
-	});
-
-app.set("port", 3011);
-
-const server = app.listen(app.get("port"), () => {
-	console.log(`🍿 Express running`);
-=======
 // this just redirects to the main page, can be edited.
 app.get('/', (req, res) => {
   res.redirect('https://sincarne-08e9ac5ee7bf.herokuapp.com/');
@@ -51,5 +38,4 @@ app.set('port', process.env.PORT || 3011);
 
 const server = app.listen(app.get('port'), () => {
   console.log(`🍿 Express running`);
->>>>>>> 27ba444103043312bd0c76b31c595d9c7c1813f5
 });
