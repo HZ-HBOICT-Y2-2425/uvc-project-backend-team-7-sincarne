@@ -8,7 +8,7 @@ const sqlite = process.env.DEBUG === "TRUE" ? sqlite3.verbose() : sqlite3;
 
 // nutri/getNutritions/ByName/:ingredient_description;
 export async function getNutritionsByName(req: Request, res: Response) {
-	const ingredient_des = req.params.ingreident_description;
+	const ingredient_des = req.params.ingredient_description;
 	getNutritions(req, res, null, ingredient_des);
 }
 

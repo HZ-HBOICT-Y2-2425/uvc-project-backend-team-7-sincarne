@@ -21,10 +21,11 @@ export async function updateDiary(req: Request, res: Response) {
 	// Schema for the data received from the client
 	const updateSchema = z.object({
 		date: z.string().default(new Date().toDateString()),
-		total_calories: createIntegerSchema().nullable().default(null),
-		total_protein: createIntegerSchema().nullable().default(null),
-		total_carbs: createIntegerSchema().nullable().default(null),
-		total_fats: createIntegerSchema().nullable().default(null),
+		total_calories: z.number(),
+		total_protein: z.number(),
+		total_carbs: z.number(),
+		total_fats: z.number(),
+		emission: z.number(),
 	});
 
 	// Schema for the data retrieved from the database
@@ -33,6 +34,7 @@ export async function updateDiary(req: Request, res: Response) {
 		total_protein: z.number().nullable(),
 		total_carbs: z.number().nullable(),
 		total_fats: z.number().nullable(),
+		emission: z.number().nullable(),
 	});
 
 	// Type checking received data provide null for empty values
@@ -47,19 +49,19 @@ export async function updateDiary(req: Request, res: Response) {
 
 	const updateQuery = `
 		UPDATE Diatery_diary 
-		SET total_calories = ?, total_protein = ?, total_carbs = ?, total_fats = ?
+		SET total_calories = ?, total_protein = ?, total_carbs = ?, total_fats = ?, emission = ?
 		WHERE user_id = ? AND date = ?
 	`;
 
 	const insertQuery = `
 		INSERT INTO Diatery_diary
-		(user_id, total_calories, total_protein, total_carbs, total_fats, date)
-		VALUES (?,?,?,?,?,?)
+		(user_id, total_calories, total_protein, total_carbs, total_fats, emission, date)
+		VALUES (?,?,?,?,?,?,?)
 
 	`;
 
 	const retrieveQuery = `
-		SELECT total_calories, total_protein, total_carbs, total_fats
+		SELECT total_calories, total_protein, total_carbs, total_fats, emission
 		FROM Diatery_diary
 		WHERE user_id = ? AND date = ?
 	`;
@@ -97,6 +99,9 @@ export async function updateDiary(req: Request, res: Response) {
 					total_fats:
 						(parsed.data.total_fats ?? 0) +
 						(parsedQuery.data.total_fats ?? 0),
+					emissions:
+						(parsed.data.emission ?? 0) +
+						(parsedQuery.data.emission ?? 0),
 				};
 				db.run(
 					updateQuery,
@@ -116,6 +121,7 @@ export async function updateDiary(req: Request, res: Response) {
 					total_protein: parsed.data.total_protein ?? 0,
 					total_carbs: parsed.data.total_carbs ?? 0,
 					total_fats: parsed.data.total_fats ?? 0,
+					emission: parsed.data.emission ?? 0,
 				};
 				db.run(
 					insertQuery,
@@ -129,6 +135,33 @@ export async function updateDiary(req: Request, res: Response) {
 					}
 				);
 			}
+			// Update global co2 prevented for the user
+			db.get(
+				`
+				SELECT CO2Prevented from Users
+				WHERE id = ?
+				`,
+				[user_id],
+				(err, row) => {
+					if (err) {
+						console.log("error: ", err);
+						res.status(500).send();
+					}
+					const schema = z.object({
+						CO2Prevented: z.number().nullable(),
+					});
+					let userCO2 = schema.safeParse(row).data?.CO2Prevented ?? 0;
+					userCO2 += updatedData.emissions ?? 0;
+					db.run(
+						`
+						UPDATE Users
+						SET CO2Prevented = ?
+						WHERE id = ?
+						`,
+						[userCO2, user_id]
+					);
+				}
+			);
 		});
 	});
 }
@@ -148,11 +181,10 @@ export async function getDiary(req: Request, res: Response) {
 	const date = req.params.date;
 
 	const retrieveQuery = `
-		SELECT total_calories, total_protein, total_carbs, total_fats
+		SELECT total_calories, total_protein, total_carbs, total_fats, emission
 		FROM Diatery_diary
 		WHERE user_id = ? AND date = ?
 	`;
-
 
 	db.get(retrieveQuery, [user_id, date], (err, row) => {
 		if (err) {
@@ -161,14 +193,15 @@ export async function getDiary(req: Request, res: Response) {
 		}
 		// return data with the row is there
 		if (row) {
-			res.status(200).json(row)
-		// not having a object for a date shouldn't create an error either instead just return empty skeleton
-		}else{
+			res.status(200).json(row);
+			// not having a object for a date shouldn't create an error either instead just return empty skeleton
+		} else {
 			res.status(200).json({
 				total_calories: 0,
 				total_protein: 0,
 				total_carbs: 0,
 				total_fats: 0,
+				emission: 0,
 			});
 		}
 	});

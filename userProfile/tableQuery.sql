@@ -5,7 +5,7 @@ CREATE TABLE Users (
 	nickname TEXT,
 	email TEXT,
 	picture TEXT,
-	CO2Prevented NUMBER
+	CO2Prevented REAL
 );
 
 CREATE TABLE Friend_groups(
@@ -46,6 +46,7 @@ CREATE TABLE Ingredients(
 CREATE TABLE Ingredients_to_recipes(
 	ingredient_id INTEGER NOT NULL,
 	recipe_id INTEGER NOT NULL,
+	prevented_emission REAL,
 	PRIMARY KEY (ingredient_id,recipe_id),
 	FOREIGN KEY (ingredient_id) REFERENCES Ingredients(id) ON DELETE CASCADE,
 	FOREIGN KEY (recipe_id) REFERENCES Recipes(id) ON DELETE CASCADE
@@ -79,6 +80,7 @@ CREATE TABLE Diatery_diary(
 	total_protein REAL,
 	total_carbs REAL,
 	total_fats REAL,
+	emission REAL,
 	PRIMARY KEY (user_id,date),
 	FOREIGN KEY (user_id) REFERENCES Users(id)
 );

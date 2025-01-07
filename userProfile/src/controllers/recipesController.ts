@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import sqlite3 from "sqlite3";
 import dotenv from "dotenv";
 import z from "zod";
-import db from '../../db'
+import db from "../../db";
 
 import {
 	createIntegerSchema,
@@ -52,7 +52,7 @@ export async function getRecipe(req: Request, res: Response) {
 	`;
 
 	const ingredientsQuery = `
-		SELECT ing.name, ing.amount from Ingredients_to_recipes as Itr 
+		SELECT ing.name, ing.amount, Itr.prevented_emission as emission from Ingredients_to_recipes as Itr 
 		JOIN Ingredients as ing on Itr.ingredient_id = ing.id
 		WHERE Itr.recipe_id = ?
 	`;
@@ -62,6 +62,7 @@ export async function getRecipe(req: Request, res: Response) {
 			console.log(err);
 			res.status(500).send();
 		}
+
 		if (!row) {
 			res.status(404).send("Recipe not found");
 		}
@@ -121,7 +122,7 @@ export async function createRecipe(req: Request, res: Response) {
 
 	res.status(200).send();
 }
-// todo : provide option to update image_path 
+// todo : provide option to update image_path
 export function updateRecipe(req: Request, res: Response) {
 	// Connect to the database
 	// Retrieve the recipe_id from the request
@@ -212,7 +213,6 @@ export function updateRecipe(req: Request, res: Response) {
 	res.status(200).send();
 }
 export async function deleteRecipe(req: Request, res: Response) {
-
 	// Retrieve the recipe_id from the request
 	const receipe_id = req.params.recipe_id;
 
@@ -298,6 +298,8 @@ export async function updateIngredient(req: Request, res: Response) {
 			else {
 				res.status(200);
 				// Retrive all the ingredients attached to the recipe
+				// very much could be a join query ............ 
+				// todo: make it a join query
 				db.all(ingredientsRetrivialQuery, recipe_id, (err, rows) => {
 					if (err) {
 						console.log(err);
@@ -320,7 +322,6 @@ export async function updateIngredient(req: Request, res: Response) {
 							parsed.data.ingredient_name
 						) {
 							// If the amount is 0 remove the ingredient
-							// todo: figure out cascading or remove bridge here too
 							if (!parsed.data.amount)
 								db.run(
 									ingredientDeletionQuery,
@@ -335,19 +336,18 @@ export async function updateIngredient(req: Request, res: Response) {
 								);
 							flag = true;
 						}
-
-					})
-					if(!flag){
-						res.status(404).send("ingrediet isn't present in the recipe")
+					});
+					if (!flag) {
+						res.status(404).send(
+							"ingrediet isn't present in the recipe"
+						);
 					}
 					res.send();
-
 				});
 			}
 		});
 	});
 }
-
 
 export async function addIngredient(req: Request, res: Response) {
 	// Connect to the database
@@ -365,6 +365,7 @@ export async function addIngredient(req: Request, res: Response) {
 		const inputSchema = z.object({
 			ingredient_name: z.string(),
 			amount: z.number(),
+			emission: z.number().optional(),
 		});
 
 		const retrivialSchema = z.object({
@@ -372,7 +373,6 @@ export async function addIngredient(req: Request, res: Response) {
 			name: z.string(),
 			amount: z.number(),
 		});
-
 
 		const parsed = inputSchema.safeParse(req.body);
 
@@ -399,7 +399,7 @@ export async function addIngredient(req: Request, res: Response) {
 		`;
 		const bridgeInsertionQuery = `
 			INSERT INTO Ingredients_to_recipes
-			VALUES (?,?);
+			VALUES (?,?,?);
 		`;
 		db.serialize(() => {
 			// Get recipe
@@ -415,7 +415,8 @@ export async function addIngredient(req: Request, res: Response) {
 						"The recipe you wish to add ingredients to either doesn't exists or doesn't belong to the user"
 					);
 				}
-				// Recipe returned
+				// Recipe returned 
+				// ..... couldn't this be a join query ....
 				else {
 					db.all(
 						ingredientsRetrivialQuery,
@@ -431,7 +432,6 @@ export async function addIngredient(req: Request, res: Response) {
 							let flag = false;
 							rows.forEach((row) => {
 								// Parsed results for type safety
-								console.log("row", row);
 								const parsedQuery =
 									retrivialSchema.safeParse(row);
 								if (!parsedQuery.success) {
@@ -444,30 +444,37 @@ export async function addIngredient(req: Request, res: Response) {
 									parsedQuery.data?.name ===
 									parsed.data.ingredient_name
 								) {
-									flag = true
+									flag = true;
 								}
+							});
+							if (flag) {
+								res.status(208).send(
+									"ingredient already exists "
+								);
+								return;
 							}
-						);
-						if(flag){
-							res.status(208).send("ingredient already exists ")
-							return;
-
-						}
-					db.run(
-						ingredientInsertionQuery,
-						[parsed.data.ingredient_name, parsed.data.amount],
-						function (err) {
-							if (err) {
-								console.log(err);
-								res.status(500).send();
-							}
-							db.run(bridgeInsertionQuery, [
-								this.lastID,
-								recipe_id,
-							]);
-						res.status(200).send('new ingredient created')
-						}
-					);
+							// Create a bridge table entry for a new ingredient
+							db.run(
+								ingredientInsertionQuery,
+								[
+									parsed.data.ingredient_name,
+									parsed.data.amount,
+								],
+								function (err) {
+									if (err) {
+										console.log(err);
+										res.status(500).send();
+									}
+									db.run(bridgeInsertionQuery, [
+										this.lastID,
+										recipe_id,
+										parsed.data.emission ?? 0	
+									]);
+									res.status(200).send(
+										"new ingredient created"
+									);
+								}
+							);
 						}
 					);
 				}

@@ -32,5 +32,4 @@ router.post("/recipes/:recipe_id/addIngredient",cors(),addIngredient)
 router.patch("/updateRecipe/:recipe_id", cors(), updateRecipe);
 router.delete("/deleteRecipe/:recipe_id", cors(), deleteRecipe);
 
-
 export default router;
