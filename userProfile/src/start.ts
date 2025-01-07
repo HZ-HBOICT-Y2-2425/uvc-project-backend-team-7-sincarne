@@ -13,6 +13,10 @@ const config = {
 	baseURL: "http://localhost:3011", //will change upon hoating ??
 	clientID: process.env.CLIENTID,
 	issuerBaseURL: "https://dev-v85ldbuj2bj2iv0y.us.auth0.com",
+	routes: {
+		login: '/user/login',
+		logout: '/user/logout'
+	}
 };
 
 const app = express();
@@ -24,16 +28,23 @@ app.use(express.urlencoded({ extended: true }));
 // auth router attaches /login, /logout, and /callback routes to the baseURL
 app.use(auth(config));
 
+//this makes sure to redirect to the front page of the app(can be changed to the production app)
+app.get("/", (req, res) => {
+	res.redirect('http://localhost:5173/');
+});
+
+app.get("/user/profile", requiresAuth(), (req, res) => {
+	res.send(JSON.stringify(req.oidc.user));
+});
+
+app.get("/user/isLoggedIn", (req, res) => {
+	res.send(JSON.stringify(req.oidc.isAuthenticated()));
+});
+
 app.use("/user", requiresAuth(),authUser, router)
 
-
+	//demonstrates how to access thr user data
 app.set("port", 3011);
-
-// this just redirects to the main page, can be edited.
-app.get("/", (req, res) => {
-	//idk man
-	res.redirect("./");
-});
 
 const server = app.listen(app.get("port"), () => {
 	console.log(`🍿 Express running`);
