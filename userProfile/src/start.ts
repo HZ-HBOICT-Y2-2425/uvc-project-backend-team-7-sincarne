@@ -41,9 +41,9 @@ app.get("/user/isLoggedIn", (req, res) => {
 	res.send(JSON.stringify(req.oidc.isAuthenticated()));
 });
 
-app.use("/user", requiresAuth(),authUser, router)
+app.use("/user", requiresAuth(), authUser, router)
 
-	//demonstrates how to access thr user data
+//demonstrates how to access thr user data
 app.set("port", 3011);
 
 const server = app.listen(app.get("port"), () => {
