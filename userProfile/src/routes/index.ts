@@ -42,6 +42,6 @@ router.get("/co2global", cors(), getTotalCO2);
 router.get("/leaderboard", cors(), getLeaderboard);
 
 //Teams routes 
-router.get("/user/groups", listUserGroups);
+router.get("/groups", listUserGroups);
 
 export default router;

@@ -14,20 +14,18 @@ export async function listUserGroups(req: Request, res: Response) {
     const user_id = req.user_id;  // Assumes user_id is available on the req object
 
     const query = `
-        SELECT fg.id, fg.name
-        FROM Friend_groups fg
-        INNER JOIN Friend_groups_to_users fgu ON fg.id = fgu.friend_group_id
-        WHERE fgu.user_id = ?
+        SELECT id, name
+        FROM Friend_groups 
     `;
 
-    db.all(query, [user_id], (err, rows) => {
+    db.all(query, (err, rows) => {
         if (err) {
             console.error(err);
             res.status(500).send("An error occurred while fetching user groups.");
             return;
         }
 
-        res.status(200).json(rows);
+        res.status(200).json({groups: rows});
     });
 }
 
