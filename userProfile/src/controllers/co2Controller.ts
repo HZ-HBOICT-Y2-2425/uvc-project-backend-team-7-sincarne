@@ -12,7 +12,7 @@ interface TotalCO2Data {
 export const getUserCO2 = (req: Request, res: Response) => {
     const userId = req.user_id;
 
-    const db = new sqlite3.Database("./dev.db", (err) => {
+    const db = new sqlite3.Database("./db.sqlite3", (err) => {
         if (err) {
             console.error("Database connection error:", err);
             res.status(500).json({ error: "Failed to connect to the database." });
@@ -45,7 +45,7 @@ export const getUserCO2 = (req: Request, res: Response) => {
 };
 
 export const getTotalCO2 = (_req: Request, res: Response) => {
-    const db = new sqlite3.Database("./dev.db", (err) => {
+    const db = new sqlite3.Database("./db.sqlite3", (err) => {
         if (err) {
             console.error("Database connection error:", err);
             res.status(500).json({ error: "Failed to connect to the database." });

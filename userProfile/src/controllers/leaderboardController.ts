@@ -10,7 +10,7 @@ interface LeaderboardRow {
 }
 
 export async function getLeaderboard(req: Request, res: Response) {
-    const db = new sqlite.Database("./dev.db", (err: any) => {
+    const db = new sqlite.Database("./db.sqlite3", (err: any) => {
         if (err) {
             console.error("Database connection error:", err);
             res.status(500).json({ error: "Failed to connect to the database." });
