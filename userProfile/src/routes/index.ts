@@ -13,6 +13,7 @@ import { updateDiary , getDiary} from "../controllers/diateryController";
 import { authUser } from "../middleware/authUser";
 import { getUserCO2, getTotalCO2 } from "../controllers/co2Controller";
 import { getLeaderboard } from "../controllers/leaderboardController";
+import { listUserGroups } from "../controllers/teamsController";
 
 const router = express.Router();
 
@@ -39,5 +40,8 @@ router.get("/co2global", cors(), getTotalCO2);
 
 //Leaderboard routes
 router.get("/leaderboard", cors(), getLeaderboard);
+
+//Teams routes 
+router.get("/user/groups", listUserGroups);
 
 export default router;

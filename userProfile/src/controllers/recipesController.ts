@@ -107,9 +107,9 @@ export async function createRecipe(req: Request, res: Response) {
 		VALUES (?,?,?,?,?,?,?)
 	`;
 
-	db.serialize(() => {
-		db.run(insertQuery, [
-			user_id,
+		db.serialize(() => {
+			db.run(insertQuery, [
+				user_id,
 			parsed.data.name,
 			parsed.data.image_path,
 			0,

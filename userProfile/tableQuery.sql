@@ -18,7 +18,7 @@ CREATE TABLE Friend_groups_to_users(
 	friend_group_id INTEGER NOT NULL,
 	PRIMARY KEY (user_id, friend_group_id),
 	FOREIGN KEY (user_id) REFERENCES Users(id),
-	FOREIGN KEY (friend_group_id) REFERENCES Friend_goups(id)
+	FOREIGN KEY (friend_group_id) REFERENCES Friend_groups(id)
 
 );
 
