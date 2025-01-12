@@ -1,27 +1,31 @@
 services:
-  microservice:
-    container_name: microservice
-    build: ./microservice
+  microservice1:
+    container_name: NutriData
+    build: ./nutriData
     volumes:
-      - ./microservice/code:/usr/src/app
+      - ./nutriData/src:/usr/src/app
     networks:
-      - msexample
-    ports:
-      - "3011:3011"
-    working_dir: /usr/src/app
-    command: bash -c "npm install && npm run dev"
-  gateway:
-    container_name: apigateway
-    build: ./apigateway
-    volumes:
-      - ./apigateway/code:/usr/src/app
-    networks:
-      - msexample
+      - sincarne
     ports:
       - "3010:3010"
-    working_dir: /usr/src/app
-    command: bash -c "npm install && npm run dev"
-
+  microservice2:
+    container_name: UserProfile
+    build: ./userProfile
+    volumes:
+      - ./userProfile/src:/usr/src/app
+    networks:
+      - sincarne
+    ports:
+      - "3011:3011"
+  api-gateway:
+    container_name: api-gateway
+    build: ./apigateway
+    volumes:
+      - ./apigateway/src:/usr/src/app
+    networks:
+      - sincarne
+    ports:
+      - "3000:3000"
 networks:
-  msexample:
+  sincarne:
     driver: bridge
