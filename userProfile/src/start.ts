@@ -5,8 +5,7 @@ import * as dotenv from "dotenv";
 import cors from 'cors';
 import router from "./routes";
 import { authUser } from "./middleware/authUser";
-
-
+import swaggerDocs from "./utils/swagger";
 
 dotenv.config({ path: require("path").resolve(__dirname, "../.env") });
 
@@ -65,4 +64,6 @@ app.set("port", 3011);
 
 const server = app.listen(app.get("port"), () => {
 	console.log(`🍿 Express running`);
+
+	swaggerDocs(app,3011);
 });
