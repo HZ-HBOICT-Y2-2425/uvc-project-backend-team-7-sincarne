@@ -72,7 +72,7 @@ router.get("/", (req, res, next) => {
  *       500:
  *         description: Internal server error
  */
-router.post('updateDiary', cors(), updateDiary);
+router.post('/updateDiary', cors(), updateDiary);
 
 /**
  * @swagger
@@ -119,7 +119,7 @@ router.post('updateDiary', cors(), updateDiary);
  *       404:
  *         description: Diary entry not found for the specified date
  */
-router.get('getDiary/:date', cors(), getDiary);
+router.get('/getDiary/:date', cors(), getDiary);
 
 
 /**
@@ -266,7 +266,7 @@ router.get('getDiary/:date', cors(), getDiary);
  *               items:
  *                 $ref: '#/components/schemas/Recipe'
  */
-router.get('getRecipes', cors(), getRecipes);
+router.get('/getRecipes', cors(), getRecipes);
 
 /**
  * @swagger
@@ -294,7 +294,7 @@ router.get('getRecipes', cors(), getRecipes);
  *       404:
  *         description: Recipe not found
  */
-router.get('getRecipe/:recipe_id', cors(), getRecipe);
+router.get('/getRecipe/:recipe_id', cors(), getRecipe);
 
 /**
  * @swagger
@@ -317,7 +317,7 @@ router.get('getRecipe/:recipe_id', cors(), getRecipe);
  *       400:
  *         description: Validation errors in the provided recipe data
  */
-router.post('createRecipe', cors(), createRecipe);
+router.post('/createRecipe', cors(), createRecipe);
 
 /**
  * @swagger
@@ -349,7 +349,7 @@ router.post('createRecipe', cors(), createRecipe);
  *       400:
  *         description: Validation errors in the provided data
  */
-router.patch('updateRecipe/:recipe_id', cors(), updateRecipe);
+router.patch('/updateRecipe/:recipe_id', cors(), updateRecipe);
 
 /**
  * @swagger
@@ -373,7 +373,7 @@ router.patch('updateRecipe/:recipe_id', cors(), updateRecipe);
  *       404:
  *         description: Recipe not found
  */
-router.delete('deleteRecipe/:recipe_id', cors(), deleteRecipe);
+router.delete('/deleteRecipe/:recipe_id', cors(), deleteRecipe);
 
 /**
  * @swagger
@@ -405,7 +405,7 @@ router.delete('deleteRecipe/:recipe_id', cors(), deleteRecipe);
  *       400:
  *         description: Validation errors in the provided ingredient data
  */
-router.post('recipes/:recipe_id/updateIngredient', cors(), updateIngredient);
+router.post('/recipes/:recipe_id/updateIngredient', cors(), updateIngredient);
 
 /**
  * @swagger
@@ -439,7 +439,7 @@ router.post('recipes/:recipe_id/updateIngredient', cors(), updateIngredient);
  *       400:
  *         description: Validation errors in the provided ingredient data
  */
-router.post('recipes/:recipe_id/addIngredient', cors(), addIngredient);
+router.post('/recipes/:recipe_id/addIngredient', cors(), addIngredient);
 
 
 
@@ -470,7 +470,7 @@ router.post('recipes/:recipe_id/addIngredient', cors(), addIngredient);
  *       404:
  *         description: User not found
  */
-router.get('co2personal', cors(), getUserCO2);
+router.get('/co2personal', cors(), getUserCO2);
 
 /**
  * @swagger
@@ -496,7 +496,7 @@ router.get('co2personal', cors(), getUserCO2);
  *       500:
  *         description: Database connection error
  */
-router.get('co2global', cors(), getTotalCO2);
+router.get('/co2global', cors(), getTotalCO2);
 
 
 /**
@@ -517,7 +517,7 @@ router.get('co2global', cors(), getTotalCO2);
  *       200:
  *         description: Leaderboard data retrieved successfully
  */
-router.get('leaderboard', cors(), getLeaderboard);
+router.get('/leaderboard', cors(), getLeaderboard);
 
 
 // Social share routes
